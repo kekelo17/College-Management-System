@@ -1,0 +1,363 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Teacher Details{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-chalkboard-teacher me-2"></i>{{ teacher.user.get_full_name|default:teacher.user.username }}</h1>
+            <p class="text-muted">
+                <span class="badge bg-primary me-1">{{ teacher.employee_id }}</span>
+                <span class="badge {% if teacher.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                    {{ teacher.get_status_display }}
+                </span>
+            </p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'teachers:teacher_update' teacher.pk %}" class="btn btn-outline">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <a href="{% url 'teachers:teacher_list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column - Profile Card -->
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card mb-4">
+                <div class="card-body text-center py-5">
+                    <div class="avatar-wrapper mb-3">
+                        {% if teacher.profile_picture %}
+                        <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.user.get_full_name }}" 
+                             class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                        {% else %}
+                        <div class="avatar-circle" style="width: 120px; height: 120px; font-size: 3rem; background: linear-gradient(135deg, #10b981, #059669);">
+                            {{ teacher.user.get_short_name|default:teacher.user.username|slice:":1"|upper }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h4>{{ teacher.user.get_full_name|default:teacher.user.username }}</h4>
+                    <p class="text-muted mb-1">{{ teacher.designation|default:"—" }}</p>
+                    <p class="text-muted">
+                        <i class="fas fa-building me-1"></i>
+                        {{ teacher.department.name|default:"No Department" }}
+                    </p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-calendar me-1"></i>
+                            Joined {{ teacher.joining_date|date:"M Y" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Quick Info</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-briefcase me-2"></i>Designation</span>
+                            <span class="info-value">{{ teacher.designation|default:"—" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-calendar me-2"></i>Date of Birth</span>
+                            <span class="info-value">{{ teacher.date_of_birth|date:"F d, Y"|default:"—" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-venus-mars me-2"></i>Gender</span>
+                            <span class="info-value">{{ teacher.get_gender_display|default:"—" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label"><i class="fas fa-star me-2"></i>Specialization</span>
+                            <span class="info-value">{{ teacher.specialization|default:"—" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div class="col-lg-8">
+            <!-- Tabs Navigation -->
+            <div class="card">
+                <div class="card-header p-0">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#contact">
+                                <i class="fas fa-address-book me-1"></i> Contact
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#qualifications">
+                                <i class="fas fa-graduation-cap me-1"></i> Qualifications
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#experience">
+                                <i class="fas fa-history me-1"></i> Experience
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#documents">
+                                <i class="fas fa-file-alt me-1"></i> Documents
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#courses">
+                                <i class="fas fa-book me-1"></i> Courses
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <!-- Contact Tab -->
+                        <div class="tab-pane fade show active" id="contact">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="detail-card">
+                                        <label><i class="fas fa-envelope me-2"></i>Email Address</label>
+                                        <p>{{ teacher.user.email|default:"—" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-card">
+                                        <label><i class="fas fa-phone me-2"></i>Phone Number</label>
+                                        <p>{{ teacher.phone|default:"—" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="detail-card">
+                                        <label><i class="fas fa-map-marker-alt me-2"></i>Address</label>
+                                        <p>{{ teacher.address|default:"—" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <h6 class="text-muted mb-3"><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="detail-card">
+                                        <label>Name</label>
+                                        <p>{{ teacher.emergency_contact_name|default:"—" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="detail-card">
+                                        <label>Relationship</label>
+                                        <p>{{ teacher.emergency_contact_relation|default:"—" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="detail-card">
+                                        <label>Phone</label>
+                                        <p>{{ teacher.emergency_contact_phone|default:"—" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Qualifications Tab -->
+                        <div class="tab-pane fade" id="qualifications">
+                            {% if teacher.qualifications.exists %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Degree</th>
+                                            <th>Institution</th>
+                                            <th>Year</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for qual in teacher.qualifications.all %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ qual.degree }}</strong>
+                                                <small class="d-block text-muted">{{ qual.field_of_study }}</small>
+                                            </td>
+                                            <td>{{ qual.institution }}</td>
+                                            <td>{{ qual.year }}</td>
+                                            <td>
+                                                <a href="{% url 'teachers:qualification_delete' qual.pk %}" class="btn btn-sm btn-ghost text-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No qualifications added</p>
+                                <a href="{% url 'teachers:qualification_create' teacher.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Add Qualification
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Experience Tab -->
+                        <div class="tab-pane fade" id="experience">
+                            {% if teacher.experiences.exists %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Organization</th>
+                                            <th>Position</th>
+                                            <th>Duration</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for exp in teacher.experiences.all %}
+                                        <tr>
+                                            <td>{{ exp.organization }}</td>
+                                            <td>
+                                                <strong>{{ exp.position }}</strong>
+                                                {% if exp.description %}
+                                                <small class="d-block text-muted">{{ exp.description|truncatechars:50 }}</small>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ exp.start_date|date:"M Y" }} - 
+                                                {% if exp.end_date %}{{ exp.end_date|date:"M Y" }}{% else %}Present{% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'teachers:experience_delete' exp.pk %}" class="btn btn-sm btn-ghost text-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No experience records added</p>
+                                <a href="{% url 'teachers:experience_create' teacher.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Add Experience
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Documents Tab -->
+                        <div class="tab-pane fade" id="documents">
+                            {% if teacher.documents.exists %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Document</th>
+                                            <th>Type</th>
+                                            <th>Uploaded</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doc in teacher.documents.all %}
+                                        <tr>
+                                            <td>
+                                                <i class="fas fa-file-alt me-2"></i>{{ doc.title }}
+                                            </td>
+                                            <td><span class="badge bg-secondary">{{ doc.get_document_type_display }}</span></td>
+                                            <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{{ doc.file.url }}" class="btn btn-sm btn-ghost" target="_blank">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                <a href="{% url 'teachers:document_delete' doc.pk %}" class="btn btn-sm btn-ghost text-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No documents uploaded</p>
+                                <a href="{% url 'teachers:document_create' teacher.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus me-1"></i> Upload Document
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Courses Tab -->
+                        <div class="tab-pane fade" id="courses">
+                            {% if teacher.courses.exists %}
+                            <div class="row g-3">
+                                {% for course in teacher.courses.all %}
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>{{ course.name }}</h6>
+                                            <small class="text-muted">{{ course.code }}</small>
+                                            <div class="mt-2">
+                                                <span class="badge bg-primary">{{ course.credits }} Credits</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No courses assigned</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <a href="{% url 'teachers:teacher_update' teacher.pk %}" class="btn btn-outline w-100">
+                                <i class="fas fa-edit me-1"></i> Edit Details
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'teachers:qualification_create' teacher.pk %}" class="btn btn-outline w-100">
+                                <i class="fas fa-graduation-cap me-1"></i> Add Qualification
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{% url 'teachers:experience_create' teacher.pk %}" class="btn btn-outline w-100">
+                                <i class="fas fa-plus me-1"></i> Add Experience
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

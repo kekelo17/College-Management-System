@@ -1,0 +1,601 @@
+{% extends 'layouts/auth.html' %}
+
+{% block title %}Register - College ERP{% endblock %}
+
+{% block content %}
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-dim: rgba(201,168,76,0.12);
+    --ink: #0A0A0B;
+    --ink-2: #111113;
+    --ink-3: #1A1A1D;
+    --border: rgba(255,255,255,0.07);
+    --border-focus: rgba(201,168,76,0.45);
+    --text-muted: rgba(255,255,255,0.36);
+    --text-mid: rgba(255,255,255,0.62);
+    --error: #E05A5A;
+    --radius: 2px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .auth-page {
+    min-height: 100vh;
+    background: var(--ink);
+    display: flex;
+    align-items: stretch;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ─── GRAIN ─── */
+  .auth-page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.55;
+  }
+
+  /* ─── SPLIT LAYOUT ─── */
+  .auth-left {
+    display: none;
+    width: 42%;
+    flex-shrink: 0;
+    background: var(--ink-2);
+    border-right: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    padding: 56px 52px;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  @media (min-width: 900px) {
+    .auth-left { display: flex; }
+  }
+
+  /* Grid lines on left panel */
+  .auth-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 30% 50%, black 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* Glow blob */
+  .auth-left::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 440px; height: 440px;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .left-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-diamond {
+    width: 30px; height: 30px;
+    border: 1.5px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(45deg);
+    flex-shrink: 0;
+  }
+
+  .brand-diamond-inner {
+    width: 10px; height: 10px;
+    background: var(--gold);
+  }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0.04em;
+  }
+
+  .left-body {
+    position: relative;
+    z-index: 2;
+  }
+
+  .left-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .left-eyebrow::before {
+    content: '';
+    display: block;
+    width: 18px; height: 1px;
+    background: var(--gold);
+  }
+
+  .left-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  .left-heading em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .left-desc {
+    font-size: 0.85rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+
+  .left-perks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .left-perks li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    letter-spacing: 0.02em;
+  }
+
+  .perk-dot {
+    width: 20px; height: 1px;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .left-footer {
+    position: relative;
+    z-index: 2;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── RIGHT PANEL (Form) ─── */
+  .auth-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+    position: relative;
+  }
+
+  /* Top right glow */
+  .auth-right::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 500px; height: 500px;
+    background: radial-gradient(ellipse, rgba(201,168,76,0.05) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .form-card {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 2;
+    animation: form-in 0.6s ease both;
+  }
+
+  @keyframes form-in {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile brand (shown only on small screens) */
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 40px;
+  }
+
+  @media (min-width: 900px) {
+    .mobile-brand { display: none; }
+  }
+
+  .form-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 400;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+
+  .form-heading em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .form-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 36px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* ─── ALERT ─── */
+  .erp-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(224,90,90,0.08);
+    border: 1px solid rgba(224,90,90,0.25);
+    border-left: 2px solid var(--error);
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    margin-bottom: 28px;
+    animation: form-in 0.3s ease both;
+  }
+
+  .erp-alert svg { color: var(--error); flex-shrink: 0; margin-top: 1px; }
+
+  .erp-alert-text {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+  }
+
+  /* ─── FORM FIELDS ─── */
+  .erp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .field-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+
+  .field-input-wrap {
+    position: relative;
+  }
+
+  .field-input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    transition: color 0.2s;
+  }
+
+  .erp-input {
+    width: 100%;
+    background: var(--ink-2);
+    border: 1px solid var(--border);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    padding: 13px 14px 13px 40px;
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .erp-input::placeholder { color: var(--text-muted); }
+
+  .erp-input:focus {
+    border-color: var(--border-focus);
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.07);
+  }
+
+  .erp-input:focus + .field-input-icon,
+  .field-input-wrap:focus-within .field-input-icon {
+    color: var(--gold);
+  }
+
+  /* Fix icon sitting behind input */
+  .field-input-icon { z-index: 1; }
+  .erp-input { position: relative; z-index: 2; background: var(--ink-2); }
+
+  /* re-layer so icon shows on top */
+  .field-input-wrap {
+    position: relative;
+  }
+  .field-input-wrap .erp-input { padding-left: 40px; }
+  .field-input-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    pointer-events: none;
+    color: var(--text-muted);
+    transition: color 0.25s;
+  }
+  .field-input-wrap:focus-within svg { color: var(--gold); }
+
+  .erp-input.has-error {
+    border-color: rgba(224,90,90,0.4);
+  }
+
+  .field-hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  .field-error {
+    font-size: 0.72rem;
+    color: var(--error);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .field-error::before {
+    content: '';
+    display: inline-block;
+    width: 10px; height: 1px;
+    background: var(--error);
+    flex-shrink: 0;
+  }
+
+  /* ─── SUBMIT BUTTON ─── */
+  .erp-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: none;
+    padding: 15px 24px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    margin-top: 8px;
+  }
+
+  .erp-submit:hover {
+    background: var(--gold-light);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(201,168,76,0.22);
+  }
+
+  .erp-submit:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  /* ─── FOOTER LINK ─── */
+  .form-footer-text {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 24px;
+  }
+
+  .form-footer-text a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+
+  .form-footer-text a:hover { color: var(--gold-light); }
+
+  /* ─── DIVIDER ─── */
+  .form-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+</style>
+
+<div class="auth-page">
+
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <a href="/" class="left-brand">
+      <div class="brand-diamond">
+        <div class="brand-diamond-inner"></div>
+      </div>
+      <span class="brand-name">College ERP</span>
+    </a>
+
+    <div class="left-body">
+      <div class="left-eyebrow">Getting Started</div>
+      <h2 class="left-heading">Your academic<br>future, <em>unified</em></h2>
+      <p class="left-desc">
+        One account gives you access to every module —<br>
+        schedules, grades, fees, and more.
+      </p>
+      <ul class="left-perks">
+        <li><span class="perk-dot"></span>Instant access to your dashboard</li>
+        <li><span class="perk-dot"></span>Role-assigned permissions from day one</li>
+        <li><span class="perk-dot"></span>Encrypted, audited, and compliant</li>
+        <li><span class="perk-dot"></span>Works on any device, any time</li>
+      </ul>
+    </div>
+
+    <div class="left-footer">© {% now 'Y' %} College ERP</div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div class="form-card">
+
+      <!-- Mobile brand -->
+      <a href="/" class="mobile-brand">
+        <div class="brand-diamond">
+          <div class="brand-diamond-inner"></div>
+        </div>
+        <span class="brand-name">College ERP</span>
+      </a>
+
+      <h1 class="form-heading">Create your <em>account</em></h1>
+      <p class="form-sub">Start with a secure account, then continue to your dashboard.</p>
+
+      <!-- Non-field errors -->
+      {% if form.non_field_errors %}
+        <div class="erp-alert">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div class="erp-alert-text">
+            {% for err in form.non_field_errors %}
+              <div>{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <form method="post" class="erp-form">
+        {% csrf_token %}
+
+        <!-- Username -->
+        <div class="field-group">
+          <label class="field-label" for="id_username">Username</label>
+          <div class="field-input-wrap">
+            <input
+              type="text"
+              id="id_username"
+              name="{{ form.username.html_name }}"
+              value="{{ form.username.value|default_if_none:'' }}"
+              class="erp-input {% if form.username.errors %}has-error{% endif %}"
+              autocomplete="username"
+              placeholder="e.g. john_doe"
+              required
+            />
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          {% if form.username.errors %}
+            <div class="field-error">{% for err in form.username.errors %}{{ err }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- Password -->
+        <div class="field-group">
+          <label class="field-label" for="id_password1">Password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="id_password1"
+              name="{{ form.password1.html_name }}"
+              class="erp-input {% if form.password1.errors %}has-error{% endif %}"
+              autocomplete="new-password"
+              placeholder="Create a strong password"
+              required
+            />
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          {% if form.password1.help_text %}
+            <div class="field-hint">{{ form.password1.help_text|striptags }}</div>
+          {% endif %}
+          {% if form.password1.errors %}
+            <div class="field-error">{% for err in form.password1.errors %}{{ err }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field-group">
+          <label class="field-label" for="id_password2">Confirm password</label>
+          <div class="field-input-wrap">
+            <input
+              type="password"
+              id="id_password2"
+              name="{{ form.password2.html_name }}"
+              class="erp-input {% if form.password2.errors %}has-error{% endif %}"
+              autocomplete="new-password"
+              placeholder="Repeat your password"
+              required
+            />
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          {% if form.password2.errors %}
+            <div class="field-error">{% for err in form.password2.errors %}{{ err }}{% endfor %}</div>
+          {% endif %}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="erp-submit">
+          Create Account
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+      </form>
+
+      <p class="form-footer-text">
+        Already have an account? <a href="{% url 'login' %}">Sign in</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,373 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block page_title %}Teacher Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        border-radius: 12px;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .chart-container {
+        position: relative;
+        height: 250px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Welcome, {{ teacher.full_name }}!</h2>
+            <p class="text-muted mb-0">
+                <span class="badge bg-primary">{{ teacher.teacher_id }}</span>
+                {{ teacher.designation }}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'attendance:take' %}" class="btn btn-primary">
+                <i class="fas fa-clipboard me-2"></i>Take Attendance
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Assigned Courses -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Assigned Courses</h6>
+                            <h2 class="mb-0">{{ total_courses }}</h2>
+                            <small class="opacity-75">{{ total_students }} students</small>
+                        </div>
+                        <div class="icon-circle bg-white bg-opacity-25">
+                            <i class="fas fa-book fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Records -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Attendance Taken</h6>
+                            <h2 class="mb-0">{{ total_attendance_taken }}</h2>
+                            <small class="opacity-75">{{ pending_attendance }} pending</small>
+                        </div>
+                        <div class="icon-circle bg-white bg-opacity-25">
+                            <i class="fas fa-clipboard-list fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Results -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Pending Results</h6>
+                            <h2 class="mb-0">{{ pending_results }}</h2>
+                            <small class="opacity-75">to submit</small>
+                        </div>
+                        <div class="icon-circle bg-white bg-opacity-25">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Classes -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-subtitle mb-2 opacity-75">Today's Classes</h6>
+                            <h2 class="mb-0">{{ today_schedule.count }}</h2>
+                            <small class="opacity-75">scheduled</small>
+                        </div>
+                        <div class="icon-circle bg-white bg-opacity-25">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Student Score Distribution -->
+        <div class="col-xl-8">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Student Score Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="scoreDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-xl-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'attendance:create' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-clipboard me-2"></i>Mark Attendance
+                        </a>
+                        <a href="{% url 'results:create' %}" class="btn btn-outline-success">
+                            <i class="fas fa-file-import me-2"></i>Submit Results
+                        </a>
+                        <a href="{% url 'courses:my_courses' %}" class="btn btn-outline-info">
+                            <i class="fas fa-book-reader me-2"></i>View My Courses
+                        </a>
+                        <a href="{% url 'timetable:my_schedule' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-alt me-2"></i>My Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Performance & Schedule -->
+    <div class="row g-4">
+        <!-- Course Performance -->
+        <div class="col-xl-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Course Performance</h5>
+                    <a href="{% url 'courses:my_courses' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Course</th>
+                                    <th class="text-center">Enrolled</th>
+                                    <th class="text-center">Avg Score</th>
+                                    <th class="text-center">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perf in course_performance %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ perf.course.code }}</strong>
+                                        <br><small class="text-muted">{{ perf.course.name|truncatechars:25 }}</small>
+                                    </td>
+                                    <td class="text-center">{{ perf.enrolled }}</td>
+                                    <td class="text-center">
+                                        <strong>{{ perf.avg_score }}%</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="progress mb-0" style="height: 8px; width: 80px;">
+                                            <div class="progress-bar bg-{% if perf.avg_score >= 70 %}success{% elif perf.avg_score >= 50 %}warning{% else %}danger{% endif %}" 
+                                                 style="width: {{ perf.avg_score }}%"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">No courses assigned</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Schedule -->
+        <div class="col-xl-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Today's Schedule</h5>
+                    <span class="badge bg-primary">{{ today|date:"l, F j" }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if today_schedule %}
+                    <div class="list-group list-group-flush">
+                        {% for entry in today_schedule %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ entry.time_slot.start_time }} - {{ entry.time_slot.end_time }}</strong>
+                                    <br>
+                                    <span class="text-primary">{{ entry.course.code }}</span>
+                                    <small class="text-muted"> - {{ entry.course.name|truncatechars:30 }}</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if entry.room %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ entry.room }}
+                                    </span>
+                                    {% endif %}
+                                    <br>
+                                    <span class="badge bg-{% if entry.entry_type == 'lecture' %}primary{% elif entry.entry_type == 'practical' %}success{% else %}info{% endif %}">
+                                        {{ entry.get_entry_type_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                        <p class="mb-0">No classes scheduled for today</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notifications</h5>
+                    <a href="{% url 'notifications:list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if my_notifications %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Notification</th>
+                                    <th class="text-center">Type</th>
+                                    <th class="text-center">Priority</th>
+                                    <th>Received</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for notification in my_notifications %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ notification.notification.title }}</strong>
+                                        <br><small class="text-muted">{{ notification.notification.message|truncatechars:50 }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{% if notification.notification.notification_type == 'info' %}info{% elif notification.notification.notification_type == 'success' %}success{% elif notification.notification.notification_type == 'warning' %}warning{% else %}danger{% endif %}">
+                                            {{ notification.notification.get_notification_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-{% if notification.notification.priority == 'high' %}danger{% elif notification.notification.priority == 'medium' %}warning{% else %}secondary{% endif %}">
+                                            {{ notification.notification.get_priority_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ notification.created_at|naturaltime }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'notifications:mark_read' notification.id %}" class="btn btn-sm btn-outline-success">
+                                            Mark Read
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-bell-slash fa-3x mb-3"></i>
+                        <p class="mb-0">No new notifications</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Score Distribution Chart (Doughnut)
+    const ctx = document.getElementById('scoreDistributionChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Excellent (80+)', 'Good (60-79)', 'Average (40-59)', 'Poor (<40)'],
+            datasets: [{
+                data: [
+                    {{ students_by_score.excellent|default:0 }},
+                    {{ students_by_score.good|default:0 }},
+                    {{ students_by_score.average|default:0 }},
+                    {{ students_by_score.poor|default:0 }}
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',    // Excellent - Green
+                    'rgba(0, 123, 255, 0.8)',   // Good - Blue
+                    'rgba(255, 193, 7, 0.8)',   // Average - Yellow
+                    'rgba(220, 53, 69, 0.8)'    // Poor - Red
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                            return context.label + ': ' + context.raw + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+});
+</script>
+{% endblock %}

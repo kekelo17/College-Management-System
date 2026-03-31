@@ -1,0 +1,279 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Courses{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-book-open me-2"></i>Courses</h1>
+            <p class="text-muted">Manage courses, departments, and subject enrollments</p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'courses:department_create' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-building me-1"></i> Add Department
+            </a>
+            <a href="{% url 'courses:course_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add Course
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ courses|length|default:0 }}</span>
+                    <span class="stat-label">Total Courses</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ departments|length|default:0 }}</span>
+                    <span class="stat-label">Departments</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ total_students|default:0 }}</span>
+                    <span class="stat-label">Enrolled Students</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ subjects|default:0 }}</span>
+                    <span class="stat-label">Subjects</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="card mb-4">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#courses">
+                        <i class="fas fa-book me-1"></i> Courses
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#departments">
+                        <i class="fas fa-building me-1"></i> Departments
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#enrollments">
+                        <i class="fas fa-user-graduate me-1"></i> Enrollments
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Courses Tab -->
+                <div class="tab-pane fade show active" id="courses">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Code</th>
+                                    <th>Department</th>
+                                    <th>Duration</th>
+                                    <th>Credits</th>
+                                    <th>Status</th>
+                                    <th width="120">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'courses:course_detail' course.pk %}" class="text-decoration-none fw-semibold">
+                                            {{ course.name }}
+                                        </a>
+                                        <small class="d-block text-muted">{{ course.description|truncatechars:50 }}</small>
+                                    </td>
+                                    <td><code>{{ course.code }}</code></td>
+                                    <td>
+                                        {% if course.department %}
+                                        <span class="badge bg-primary">{{ course.department.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ course.duration_years }} Years</td>
+                                    <td>{{ course.total_credits }}</td>
+                                    <td>
+                                        <span class="badge {% if course.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if course.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'courses:course_detail' course.pk %}" class="btn btn-sm btn-ghost" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'courses:course_update' course.pk %}" class="btn btn-sm btn-ghost" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'courses:course_delete' course.pk %}" class="btn btn-sm btn-ghost text-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                        <h5>No courses found</h5>
+                                        <a href="{% url 'courses:course_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Add Course
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Departments Tab -->
+                <div class="tab-pane fade" id="departments">
+                    <div class="row g-4">
+                        {% for dept in departments %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="mb-1">{{ dept.name }}</h5>
+                                            <small class="text-muted">{{ dept.code }}</small>
+                                        </div>
+                                        <span class="badge {% if dept.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if dept.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-3">{{ dept.description|truncatechars:100 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-book me-1"></i> {{ dept.course_set.count }} Courses
+                                        </small>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'courses:department_detail' dept.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'courses:department_update' dept.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                            <h5>No departments found</h5>
+                            <a href="{% url 'courses:department_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add Department
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Enrollments Tab -->
+                <div class="tab-pane fade" id="enrollments">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0">Student Enrollments</h5>
+                        <a href="{% url 'courses:enrollment_create' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> New Enrollment
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Course</th>
+                                    <th>Semester</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th width="120">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for enrollment in enrollments %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ enrollment.student.user.get_short_name|default:enrollment.student.user.username|slice:":1"|upper }}
+                                            </div>
+                                            {{ enrollment.student.user.get_full_name|default:enrollment.student.user.username }}
+                                        </div>
+                                    </td>
+                                    <td>{{ enrollment.course.name }}</td>
+                                    <td>{{ enrollment.semester.name }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if enrollment.status == 'active' %}success{% elif enrollment.status == 'completed' %}primary{% else %}secondary{% endif %}">
+                                            {{ enrollment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ enrollment.enrolled_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'courses:enrollment_update' enrollment.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'courses:enrollment_delete' enrollment.pk %}" class="btn btn-ghost text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                                        <h5>No enrollments found</h5>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,370 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Attendance{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-calendar-check me-2"></i>Attendance</h1>
+            <p class="text-muted">Track and manage student attendance records</p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'attendance:attendance_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> New Session
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ sessions|length|default:0 }}</span>
+                    <span class="stat-label">Total Sessions</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ present_today|default:0 }}</span>
+                    <span class="stat-label">Present Today</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-danger">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ absent_today|default:0 }}</span>
+                    <span class="stat-label">Absent Today</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ pending_leaves|default:0 }}</span>
+                    <span class="stat-label">Pending Leaves</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="card mb-4">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#sessions">
+                        <i class="fas fa-calendar me-1"></i> Sessions
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#records">
+                        <i class="fas fa-list me-1"></i> Records
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#leaves">
+                        <i class="fas fa-file-alt me-1"></i> Leave Requests
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#summary">
+                        <i class="fas fa-chart-bar me-1"></i> Summary
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Sessions Tab -->
+                <div class="tab-pane fade show active" id="sessions">
+                    <!-- Filters -->
+                    <form method="get" class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <input type="date" name="date" class="form-control" value="{{ request.GET.date|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="subject" class="form-select">
+                                <option value="">All Subjects</option>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if request.GET.subject|add:0 == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-1"></i> Filter
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Subject</th>
+                                    <th>Class</th>
+                                    <th>Teacher</th>
+                                    <th>Status</th>
+                                    <th>Present/Total</th>
+                                    <th width="120">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in sessions %}
+                                <tr>
+                                    <td>{{ session.date|date:"D, M d, Y" }}</td>
+                                    <td>
+                                        <strong>{{ session.subject.name }}</strong>
+                                        <small class="d-block text-muted">{{ session.subject.code }}</small>
+                                    </td>
+                                    <td>{{ session.student_class.name }}</td>
+                                    <td>{{ session.teacher.user.get_full_name|default:session.teacher.user.username }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if session.status == 'completed' %}success{% elif session.status == 'marked' %}info{% else %}warning{% endif %}">
+                                            {{ session.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="text-success me-1">{{ session.present_count }}</span>
+                                            <span class="text-muted">/</span>
+                                            <span class="text-danger ms-1">{{ session.absent_count }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'attendance:attendance_detail' session.pk %}" class="btn btn-sm btn-ghost" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if session.status == 'pending' %}
+                                            <a href="{% url 'attendance:attendance_mark' session.pk %}" class="btn btn-sm btn-ghost text-success" title="Mark">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            {% endif %}
+                                            <a href="{% url 'attendance:attendance_delete' session.pk %}" class="btn btn-sm btn-ghost text-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                                        <h5>No attendance sessions found</h5>
+                                        <a href="{% url 'attendance:attendance_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Create Session
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Records Tab -->
+                <div class="tab-pane fade" id="records">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Session</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                    <th width="100">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ record.student.user.get_short_name|default:record.student.user.username|slice:":1"|upper }}
+                                            </div>
+                                            {{ record.student.user.get_full_name|default:record.student.user.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small>{{ record.session.subject.name }}</small>
+                                        <small class="d-block text-muted">{{ record.session.date|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if record.status == 'present' %}success{% elif record.status == 'absent' %}danger{% else %}warning{% endif %}">
+                                            {{ record.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ record.remarks|default:"—"|truncatechars:30 }}</td>
+                                    <td>
+                                        <a href="{% url 'attendance:record_update' record.pk %}" class="btn btn-sm btn-ghost">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <i class="fas fa-list fa-3x text-muted mb-3"></i>
+                                        <h5>No records found</h5>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Leave Requests Tab -->
+                <div class="tab-pane fade" id="leaves">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Reason</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Status</th>
+                                    <th width="150">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in leaves %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ leave.student.user.get_short_name|default:leave.student.user.username|slice:":1"|upper }}
+                                            </div>
+                                            {{ leave.student.user.get_full_name|default:leave.student.user.username }}
+                                        </div>
+                                    </td>
+                                    <td>{{ leave.reason|truncatechars:40 }}</td>
+                                    <td>{{ leave.start_date|date:"M d" }}</td>
+                                    <td>{{ leave.end_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if leave.status == 'approved' %}success{% elif leave.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                            {{ leave.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'attendance:leave_detail' leave.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if leave.status == 'pending' %}
+                                            <a href="{% url 'attendance:leave_approve' leave.pk %}" class="btn btn-ghost text-success">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            <a href="{% url 'attendance:leave_reject' leave.pk %}" class="btn btn-ghost text-danger">
+                                                <i class="fas fa-times"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                        <h5>No leave requests</h5>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary Tab -->
+                <div class="tab-pane fade" id="summary">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Attendance Overview</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Average Attendance</span>
+                                            <strong>{{ avg_attendance|default:0 }}%</strong>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar bg-success" style="width: {{ avg_attendance|default:0 }}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Present</span>
+                                            <strong class="text-success">{{ total_present|default:0 }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Absent</span>
+                                            <strong class="text-danger">{{ total_absent|default:0 }}</strong>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>On Leave</span>
+                                            <strong class="text-warning">{{ total_leave|default:0 }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Quick Actions</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'attendance:attendance_create' %}" class="btn btn-outline">
+                                            <i class="fas fa-plus me-2"></i> Create Attendance Session
+                                        </a>
+                                        <a href="{% url 'attendance:attendance_summary' %}" class="btn btn-outline">
+                                            <i class="fas fa-chart-bar me-2"></i> View Detailed Report
+                                        </a>
+                                        <a href="{% url 'attendance:leave_list' %}" class="btn btn-outline">
+                                            <i class="fas fa-file-alt me-2"></i> Manage Leave Requests
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

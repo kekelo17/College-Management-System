@@ -1,0 +1,812 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+
+:root {
+  --gold:        #C9A84C;
+  --gold-light:  #E8C96A;
+  --gold-dim:    rgba(201,168,76,0.11);
+  --gold-border: rgba(201,168,76,0.22);
+  --gold-glow:   rgba(201,168,76,0.18);
+  --ink:         #0A0A0B;
+  --ink-2:       #111113;
+  --ink-3:       #16181C;
+  --ink-4:       #1A1A1D;
+  --border:      rgba(255,255,255,0.065);
+  --border-mid:  rgba(255,255,255,0.10);
+  --text:        #E8E8EC;
+  --text-mid:    rgba(232,232,236,0.62);
+  --text-muted:  rgba(232,232,236,0.36);
+  --text-dim:    rgba(232,232,236,0.20);
+  --success:     #4ADE80;
+  --error:       #E05A5A;
+  --teal:        #4ECDC4;
+  --teal-dim:    rgba(78,205,196,0.10);
+  --radius:      2px;
+  --transition:  0.17s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Page base ── */
+.dash-page {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  color: var(--text);
+  padding: 32px 32px 48px;
+  min-height: 100vh;
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  margin-bottom: 36px;
+  animation: fade-up 0.5s ease both;
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-eyebrow {
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.page-eyebrow::before {
+  content: ''; display: block; width: 16px; height: 1px; background: var(--gold); opacity: 0.6;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.75rem; font-weight: 400; color: var(--text);
+  line-height: 1.1; margin: 0 0 6px;
+}
+.page-title em { font-style: italic; color: var(--gold); }
+.page-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; }
+
+.refresh-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: var(--radius); cursor: pointer;
+  transition: all var(--transition); flex-shrink: 0;
+}
+.refresh-btn:hover {
+  color: var(--gold); border-color: var(--gold-border);
+  background: var(--gold-dim);
+}
+.refresh-btn i { font-size: 10px; }
+
+/* ── Grid helpers ── */
+.grid { display: grid; gap: 16px; }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-r38 { grid-template-columns: 1fr 2fr; }
+
+@media (max-width: 1280px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1024px) { .grid-r38 { grid-template-columns: 1fr; } .grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px)  { .grid-4, .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+.mb-4 { margin-bottom: 16px; }
+.mb-6 { margin-bottom: 24px; }
+.mt-6 { margin-top: 24px; }
+
+/* ── Card base ── */
+.card {
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title i { color: var(--gold); font-size: 10px; }
+.card-body { padding: 20px; }
+.card-body-flush { padding: 0; }
+
+.view-all {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold); text-decoration: none; opacity: 0.7;
+  transition: opacity var(--transition);
+}
+.view-all:hover { opacity: 1; }
+
+/* ════════════════════════════════
+   STAT CARDS
+════════════════════════════════ */
+.stat-card {
+  padding: 22px 20px;
+  position: relative; overflow: hidden;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+  animation: fade-up 0.5s ease both;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.stat-card:nth-child(2) { animation-delay: .08s; }
+.stat-card:nth-child(3) { animation-delay: .16s; }
+.stat-card:nth-child(4) { animation-delay: .24s; }
+
+/* Top accent line on hover */
+.stat-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0; transition: opacity var(--transition);
+}
+.stat-card:hover::before { opacity: 1; }
+
+.stat-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.stat-label {
+  font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 10px; font-weight: 400;
+}
+.stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem; font-weight: 400; color: var(--text);
+  line-height: 1; letter-spacing: -0.02em;
+}
+.stat-sub {
+  font-size: 10px; color: var(--text-dim); margin-top: 4px; font-weight: 300;
+}
+.stat-icon {
+  width: 42px; height: 42px; border-radius: var(--radius);
+  background: var(--gold-dim); border: 1px solid var(--gold-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 16px; flex-shrink: 0;
+}
+.stat-footer { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* Pill badges */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 9.5px; letter-spacing: 0.06em;
+  padding: 3px 9px; border-radius: 20px; font-weight: 400;
+}
+.pill-success { background: rgba(74,222,128,0.10); color: var(--success); border: 1px solid rgba(74,222,128,0.20); }
+.pill-gold    { background: var(--gold-dim); color: var(--gold); border: 1px solid var(--gold-border); }
+.pill-error   { background: rgba(224,90,90,0.10); color: var(--error); border: 1px solid rgba(224,90,90,0.20); }
+.pill-teal    { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(78,205,196,0.20); }
+.pill i { font-size: 8px; }
+
+/* Attendance progress bar */
+.att-bar {
+  height: 3px; background: var(--border);
+  border-radius: 2px; margin-top: 10px; overflow: hidden;
+}
+.att-bar-fill {
+  height: 100%; background: var(--gold);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--gold-glow);
+  transition: width 1s ease;
+}
+
+/* ════════════════════════════════
+   CHARTS
+════════════════════════════════ */
+.chart-wrap {
+  position: relative; height: 280px; width: 100%;
+}
+
+/* ════════════════════════════════
+   TABLES
+════════════════════════════════ */
+.erp-table { width: 100%; border-collapse: collapse; }
+.erp-table thead th {
+  padding: 10px 16px;
+  font-size: 9px; font-weight: 500; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.erp-table thead th:not(:first-child) { text-align: right; }
+.erp-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.erp-table tbody tr:last-child { border-bottom: none; }
+.erp-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.erp-table tbody td {
+  padding: 11px 16px;
+  font-size: 12.5px; color: var(--text-mid); font-weight: 300;
+}
+.erp-table tbody td:not(:first-child) { text-align: right; }
+.erp-table .empty-row td {
+  text-align: center; color: var(--text-dim);
+  font-size: 11px; padding: 24px; letter-spacing: 0.06em;
+}
+
+/* Dept bar */
+.dept-bar {
+  display: inline-block; height: 3px;
+  background: var(--gold); border-radius: 2px;
+  min-width: 4px; vertical-align: middle;
+  box-shadow: 0 0 6px rgba(201,168,76,0.30);
+}
+
+/* Rank badge */
+.rank-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: var(--radius);
+  font-size: 10px; font-weight: 500;
+}
+.rank-1 { background: var(--gold); color: var(--ink); }
+.rank-2 { background: rgba(200,200,210,0.15); color: var(--text-mid); border: 1px solid var(--border-mid); }
+.rank-3 { background: rgba(140,100,60,0.15); color: rgba(200,140,80,0.9); border: 1px solid rgba(140,100,60,0.25); }
+.rank-n { background: transparent; color: var(--text-dim); font-size: 11px; }
+
+/* Student initials chip */
+.initials-chip {
+  width: 26px; height: 26px; border-radius: var(--radius);
+  background: var(--gold-dim); border: 1px solid var(--gold-border);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 600; color: var(--gold);
+  flex-shrink: 0; margin-right: 8px;
+}
+
+/* ════════════════════════════════
+   ACTIVITY FEED
+════════════════════════════════ */
+.activity-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  transition: border-color var(--transition), background var(--transition);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-item:hover {
+  border-left-color: var(--gold);
+  background: rgba(255,255,255,0.015);
+}
+.activity-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold-border); flex-shrink: 0; margin-top: 5px;
+  transition: background var(--transition);
+}
+.activity-item:hover .activity-dot { background: var(--gold); }
+.activity-text { flex: 1; min-width: 0; }
+.activity-text strong { font-size: 12.5px; font-weight: 500; color: var(--text); }
+.activity-text span { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+.activity-time {
+  font-size: 10px; color: var(--text-dim);
+  letter-spacing: 0.04em; flex-shrink: 0; white-space: nowrap;
+}
+.activity-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.empty-state {
+  padding: 32px 20px; text-align: center;
+  font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ════════════════════════════════
+   EVENTS
+════════════════════════════════ */
+.event-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 20px; border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.event-item:last-child { border-bottom: none; }
+.event-item:hover { background: rgba(255,255,255,0.015); }
+.event-date-chip {
+  width: 38px; flex-shrink: 0; text-align: center;
+  padding: 6px 4px;
+  background: var(--ink-3); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.event-date-chip .day {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 400; color: var(--text); line-height: 1;
+}
+.event-date-chip .mon {
+  font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+}
+.event-meta { flex: 1; min-width: 0; }
+.event-title { font-size: 12.5px; font-weight: 400; color: var(--text); }
+.event-course { font-size: 10.5px; color: var(--text-dim); margin-top: 2px; letter-spacing: 0.02em; }
+.event-type {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 20px; flex-shrink: 0;
+}
+.event-final { background: rgba(224,90,90,0.10); color: var(--error); border: 1px solid rgba(224,90,90,0.20); }
+.event-other { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(78,205,196,0.20); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Overview</div>
+      <h1 class="page-title">Admin <em>Dashboard</em></h1>
+      <p class="page-sub">Here's what's happening across your institution.</p>
+    </div>
+    <button class="refresh-btn" onclick="location.reload()">
+      <i class="fa-solid fa-rotate-right"></i> Refresh
+    </button>
+  </div>
+
+  <!-- ── STAT CARDS ── -->
+  <div class="grid grid-4 mb-6">
+
+    <!-- Total Students -->
+    <div class="card stat-card">
+      <div class="stat-row">
+        <div>
+          <div class="stat-label">Total Students</div>
+          <div class="stat-value">{{ total_students }}</div>
+          <div class="stat-sub">{{ active_students }} active</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-user-graduate"></i></div>
+      </div>
+      <div class="stat-footer">
+        <span class="pill pill-success">
+          <i class="fa-solid fa-arrow-up"></i>{{ new_students_this_month }} this month
+        </span>
+      </div>
+    </div>
+
+    <!-- Total Teachers -->
+    <div class="card stat-card">
+      <div class="stat-row">
+        <div>
+          <div class="stat-label">Total Teachers</div>
+          <div class="stat-value">{{ total_teachers }}</div>
+          <div class="stat-sub">{{ active_teachers }} active</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
+      </div>
+      <div class="stat-footer">
+        <span class="pill pill-teal">
+          <i class="fa-solid fa-book"></i>{{ total_courses }} courses
+        </span>
+      </div>
+    </div>
+
+    <!-- Total Revenue -->
+    <div class="card stat-card">
+      <div class="stat-row">
+        <div>
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-value" style="font-size:1.8rem;">{{ total_revenue }} XFA</div>
+          <div class="stat-sub">{{ total_invoices }} invoices</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-naira-sign"></i></div>
+      </div>
+      <div class="stat-footer">
+        <span class="pill pill-error">
+          <i class="fa-regular fa-clock"></i>{{ pending_invoices }} pending
+        </span>
+      </div>
+    </div>
+
+    <!-- Attendance Rate -->
+    <div class="card stat-card">
+      <div class="stat-row">
+        <div>
+          <div class="stat-label">Today's Attendance</div>
+          <div class="stat-value">{{ attendance_rate }}<span style="font-size:1.1rem;color:var(--gold);">%</span></div>
+          <div class="stat-sub">Average rate</div>
+        </div>
+        <div class="stat-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+      </div>
+      <div class="stat-footer">
+        <div class="att-bar">
+          <div class="att-bar-fill" style="width:{{ attendance_rate }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CHARTS ROW 1 ── -->
+  <div class="grid grid-r38 mb-4">
+
+    <!-- Gender Distribution -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-chart-pie"></i>Gender Distribution</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="genderChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Monthly Enrollments -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-chart-line"></i>Monthly Enrollments</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="enrollmentChart"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── CHARTS ROW 2 ── -->
+  <div class="grid grid-2 mb-4">
+
+    <!-- Monthly Revenue -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-chart-bar"></i>Monthly Revenue</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-chart-area"></i>Grade Distribution</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="gradeChart"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TABLES ROW ── -->
+  <div class="grid grid-2 mb-4">
+
+    <!-- Students per Department -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-building"></i>By Department</span>
+        <a href="#" class="view-all">View all →</a>
+      </div>
+      <div class="card-body-flush">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Department</th>
+              <th>Students</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dept in students_per_dept %}
+            <tr>
+              <td style="text-align:left; color:var(--text);">{{ dept.department__name|default:"Unassigned" }}</td>
+              <td>{{ dept.count }}</td>
+              <td>
+                <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+                  <span class="dept-bar" style="width:{% widthratio dept.count total_students 80 %}px;"></span>
+                  <span style="font-size:10px;color:var(--text-dim);">{% widthratio dept.count total_students 100 %}%</span>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row"><td colspan="3">No data available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Performing Students -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-trophy"></i>Top Performers</span>
+        <a href="#" class="view-all">View all →</a>
+      </div>
+      <div class="card-body-flush">
+        <table class="erp-table">
+          <thead>
+            <tr>
+              <th style="text-align:left; width:36px;">#</th>
+              <th style="text-align:left;">Student</th>
+              <th>GPA</th>
+              <th>CGPA</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for result in top_students %}
+            <tr>
+              <td style="text-align:left;">
+                {% if forloop.counter == 1 %}
+                  <span class="rank-badge rank-1"><i class="fa-solid fa-star" style="font-size:8px;"></i></span>
+                {% elif forloop.counter == 2 %}
+                  <span class="rank-badge rank-2">2</span>
+                {% elif forloop.counter == 3 %}
+                  <span class="rank-badge rank-3">3</span>
+                {% else %}
+                  <span class="rank-badge rank-n">{{ forloop.counter }}</span>
+                {% endif %}
+              </td>
+              <td style="text-align:left;">
+                <div style="display:flex;align-items:center;">
+                  <span class="initials-chip">{{ result.student.first_name|slice:":1" }}{{ result.student.last_name|slice:":1" }}</span>
+                  <span style="color:var(--text); font-size:12.5px;">{{ result.student.full_name }}</span>
+                </div>
+              </td>
+              <td style="font-weight:500; color:var(--text);">{{ result.gpa }}</td>
+              <td>{{ result.cgpa }}</td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row"><td colspan="4">No results available</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ACTIVITY & EVENTS ── -->
+  <div class="grid grid-2">
+
+    <!-- Recent Activities -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-clock-rotate-left"></i>Recent Activities</span>
+      </div>
+      {% for activity in recent_activities %}
+      <div class="activity-item">
+        <div class="activity-dot"></div>
+        <div class="activity-text">
+          <div>
+            <strong>{{ activity.user.username }}</strong>
+            <span> {{ activity.action }} {{ activity.model_name }}</span>
+          </div>
+          {% if activity.object_repr %}
+          <div class="activity-sub">{{ activity.object_repr }}</div>
+          {% endif %}
+        </div>
+        <div class="activity-time">{{ activity.created_at }}</div>
+      </div>
+      {% empty %}
+      <div class="empty-state">No recent activities</div>
+      {% endfor %}
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fa-solid fa-calendar-days"></i>Upcoming Events</span>
+      </div>
+      {% for exam in upcoming_exams %}
+      <div class="event-item">
+        <div class="event-date-chip">
+          <div class="day">{{ exam.date|date:"d" }}</div>
+          <div class="mon">{{ exam.date|date:"M" }}</div>
+        </div>
+        <div class="event-meta">
+          <div class="event-title">{{ exam.title }}</div>
+          <div class="event-course">{{ exam.course.name }}</div>
+        </div>
+        <span class="event-type {% if exam.exam_type == 'final' %}event-final{% else %}event-other{% endif %}">
+          {{ exam.get_exam_type_display }}
+        </span>
+      </div>
+      {% empty %}
+      <div class="empty-state">No upcoming events</div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ── Shared Chart.js defaults ──
+  const C = Chart.defaults;
+  C.font.family   = "'DM Sans', sans-serif";
+  C.font.size     = 11;
+  C.font.weight   = '300';
+  C.color         = 'rgba(232,232,236,0.36)';
+
+  const GOLD      = '#C9A84C';
+  const GOLD_DIM  = 'rgba(201,168,76,0.12)';
+  const TEAL      = '#4ECDC4';
+  const BORDER    = 'rgba(255,255,255,0.065)';
+
+  const gridLine  = { color: BORDER, drawBorder: false };
+  const noGrid    = { display: false };
+  const noLegend  = { display: false };
+
+  // ── Gender Distribution (Doughnut) ──
+  new Chart(document.getElementById('genderChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Male', 'Female', 'Other'],
+      datasets: [{
+        data: [
+          {{ gender_data.male|default:0 }},
+          {{ gender_data.female|default:0 }},
+          {{ gender_data.other|default:0 }}
+        ],
+        backgroundColor: [
+          'rgba(201,168,76,0.75)',
+          'rgba(78,205,196,0.75)',
+          'rgba(232,232,236,0.18)'
+        ],
+        borderColor: '#111113',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20, usePointStyle: true, pointStyleWidth: 8,
+            color: 'rgba(232,232,236,0.45)', font: { size: 11 }
+          }
+        },
+        tooltip: {
+          backgroundColor: '#16181C',
+          borderColor: 'rgba(255,255,255,0.07)',
+          borderWidth: 1,
+          titleColor: '#E8E8EC',
+          bodyColor: 'rgba(232,232,236,0.55)',
+          callbacks: {
+            label: ctx => {
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const pct   = ((ctx.raw/total)*100).toFixed(1);
+              return ' ' + ctx.label + ': ' + ctx.raw + '  (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // ── Monthly Enrollments (Line) ──
+  const enrollmentData = {{ monthly_enrollments|safe }};
+  new Chart(document.getElementById('enrollmentChart'), {
+    type: 'line',
+    data: {
+      labels: enrollmentData.map(d => d.month + '/' + d.year),
+      datasets: [{
+        label: 'Enrollments',
+        data: enrollmentData.map(d => d.count),
+        borderColor: GOLD,
+        backgroundColor: ctx => {
+          const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
+          g.addColorStop(0, 'rgba(201,168,76,0.18)');
+          g.addColorStop(1, 'rgba(201,168,76,0.00)');
+          return g;
+        },
+        fill: true, tension: 0.42,
+        pointBackgroundColor: GOLD,
+        pointBorderColor: '#111113',
+        pointBorderWidth: 2,
+        pointRadius: 4, pointHoverRadius: 6,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: noLegend, tooltip: sharedTooltip() },
+      scales: {
+        y: { beginAtZero: true, grid: gridLine, ticks: { stepSize: 1 } },
+        x: { grid: noGrid }
+      },
+      interaction: { mode: 'nearest', axis: 'x', intersect: false }
+    }
+  });
+
+  // ── Monthly Revenue (Bar) ──
+  const revenueData = {{ monthly_revenue|safe }};
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+      labels: revenueData.map(d => d.month + '/' + d.year),
+      datasets: [{
+        label: 'Revenue (₦)',
+        data: revenueData.map(d => d.total),
+        backgroundColor: ctx => {
+          const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
+          g.addColorStop(0, 'rgba(201,168,76,0.70)');
+          g.addColorStop(1, 'rgba(201,168,76,0.20)');
+          return g;
+        },
+        borderRadius: 2, borderSkipped: false,
+        hoverBackgroundColor: GOLD
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: noLegend,
+        tooltip: {
+          ...sharedTooltip(),
+          callbacks: {
+            label: ctx => ' ₦' + ctx.raw.toLocaleString()
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true, grid: gridLine,
+          ticks: {
+            callback: v => {
+              if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
+              if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+              return v;
+            }
+          }
+        },
+        x: { grid: noGrid }
+      }
+    }
+  });
+
+  // ── Grade Distribution (Horizontal Bar) ──
+  const gradeData = {{ grade_distribution|safe }};
+  new Chart(document.getElementById('gradeChart'), {
+    type: 'bar',
+    data: {
+      labels: gradeData.map(d => 'Grade ' + d.grade),
+      datasets: [{
+        label: 'Students',
+        data: gradeData.map(d => d.student_count),
+        backgroundColor: [
+          'rgba(74,222,128,0.65)',
+          'rgba(201,168,76,0.65)',
+          'rgba(78,205,196,0.65)',
+          'rgba(232,200,100,0.55)',
+          'rgba(224,90,90,0.65)',
+          'rgba(160,160,180,0.40)'
+        ],
+        borderRadius: 2, borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: noLegend, tooltip: sharedTooltip() },
+      scales: {
+        x: { beginAtZero: true, grid: gridLine },
+        y: { grid: noGrid }
+      }
+    }
+  });
+
+  function sharedTooltip() {
+    return {
+      backgroundColor: '#16181C',
+      borderColor: 'rgba(255,255,255,0.07)',
+      borderWidth: 1,
+      titleColor: '#E8E8EC',
+      bodyColor: 'rgba(232,232,236,0.55)',
+      padding: 10,
+      cornerRadius: 2
+    };
+  }
+});
+</script>
+{% endblock %}

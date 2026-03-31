@@ -1,0 +1,274 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Timetable{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-calendar-alt me-2"></i>Timetable</h1>
+            <p class="text-muted">Manage class schedules, rooms, and time slots</p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'timetable:room_create' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-door-open me-1"></i> Add Room
+            </a>
+            <a href="{% url 'timetable:entry_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add Entry
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ time_slots|length|default:0 }}</span>
+                    <span class="stat-label">Time Slots</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ rooms|length|default:0 }}</span>
+                    <span class="stat-label">Rooms</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ today_entries|default:0 }}</span>
+                    <span class="stat-label">Today's Classes</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ buildings|default:0 }}</span>
+                    <span class="stat-label">Buildings</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="card mb-4">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#schedule">
+                        <i class="fas fa-calendar-week me-1"></i> Weekly Schedule
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#entries">
+                        <i class="fas fa-list me-1"></i> All Entries
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#rooms">
+                        <i class="fas fa-door-open me-1"></i> Rooms
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#timeslots">
+                        <i class="fas fa-clock me-1"></i> Time Slots
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Weekly Schedule Tab -->
+                <div class="tab-pane fade show active" id="schedule">
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center timetable-table">
+                            <thead>
+                                <tr class="bg-dark">
+                                    <th width="100">Time</th>
+                                    {% for day in weekdays %}
+                                    <th>{{ day }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% regroup entries by start_time as time_groups %}
+                                {% for slot in time_slots %}
+                                <tr>
+                                    <td class="bg-dark-subtle">
+                                        <strong>{{ slot.start_time|time:"H:i" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ slot.end_time|time:"H:i" }}</small>
+                                    </td>
+                                    {% for day in weekdays %}
+                                    <td class="p-2">
+                                        {% for entry in entries %}
+                                            {% if entry.start_time == slot.start_time and entry.day_of_week == day %}
+                                            <div class="timetable-entry bg-{% if entry.color %}{{ entry.color }}{% else %}primary{% endif %} text-white p-2 rounded mb-1">
+                                                <small><strong>{{ entry.subject.name }}</strong></small>
+                                                <br>
+                                                <small>{{ entry.teacher.user.get_full_name|default:entry.teacher.user.username }}</small>
+                                                <br>
+                                                <small><i class="fas fa-door-open me-1"></i>{{ entry.room.name }}</small>
+                                            </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- All Entries Tab -->
+                <div class="tab-pane fade" id="entries">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Teacher</th>
+                                    <th>Class</th>
+                                    <th>Day</th>
+                                    <th>Time</th>
+                                    <th>Room</th>
+                                    <th width="100">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in all_entries %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ entry.subject.name }}</strong>
+                                        <small class="d-block text-muted">{{ entry.subject.code }}</small>
+                                    </td>
+                                    <td>{{ entry.teacher.user.get_full_name|default:entry.teacher.user.username }}</td>
+                                    <td>{{ entry.student_class.name }}</td>
+                                    <td>{{ entry.day_of_week }}</td>
+                                    <td>
+                                        {{ entry.start_time|time:"H:i" }} - {{ entry.end_time|time:"H:i" }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-door-open me-1"></i>{{ entry.room.name }}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'timetable:entry_update' entry.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'timetable:entry_delete' entry.pk %}" class="btn btn-ghost text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                                        <h5>No timetable entries found</h5>
+                                        <a href="{% url 'timetable:entry_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Add Entry
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Rooms Tab -->
+                <div class="tab-pane fade" id="rooms">
+                    <div class="row g-4">
+                        {% for room in rooms %}
+                        <div class="col-md-4 col-lg-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="mb-1">{{ room.name }}</h5>
+                                            <small class="text-muted">{{ room.building.name }}</small>
+                                        </div>
+                                        <span class="badge bg-{% if room.is_available %}success{% else %}danger{% endif %}">
+                                            {% if room.is_available %}Available{% else %}Unavailable{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small><i class="fas fa-door-open me-1"></i> Room #{{ room.room_number }}</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small><i class="fas fa-users me-1"></i> Capacity: {{ room.capacity }}</small>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <a href="{% url 'timetable:room_update' room.pk %}" class="btn btn-sm btn-ghost">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-door-open fa-3x text-muted mb-3"></i>
+                            <h5>No rooms defined</h5>
+                            <a href="{% url 'timetable:room_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add Room
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Time Slots Tab -->
+                <div class="tab-pane fade" id="timeslots">
+                    <div class="row g-4">
+                        {% for slot in time_slots %}
+                        <div class="col-md-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h4>{{ slot.start_time|time:"H:i" }}</h4>
+                                    <p class="text-muted mb-0">{{ slot.end_time|time:"H:i" }}</p>
+                                    {% if slot.is_break %}
+                                    <span class="badge bg-warning mt-2">Break</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                            <h5>No time slots defined</h5>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

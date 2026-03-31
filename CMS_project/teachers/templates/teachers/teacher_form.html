@@ -1,0 +1,226 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Teacher Form{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1>
+                {% if teacher %}
+                <i class="fas fa-user-edit me-2"></i>Edit Teacher
+                {% else %}
+                <i class="fas fa-user-plus me-2"></i>Add New Teacher
+                {% endif %}
+            </h1>
+            <p class="text-muted">
+                {% if teacher %}
+                Update teacher information and details
+                {% else %}
+                Fill in the details to register a new teacher
+                {% endif %}
+            </p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'teachers:teacher_list' %}" class="btn btn-outline">
+                <i class="fas fa-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="row g-4">
+        {% csrf_token %}
+
+        <!-- Personal Information -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control" 
+                                   value="{{ form.first_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control" 
+                                   value="{{ form.middle_name.value|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" name="last_name" class="form-control" 
+                                   value="{{ form.last_name.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" 
+                                   value="{{ form.email.value|default:'' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" name="phone" class="form-control" 
+                                   value="{{ form.phone.value|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" name="date_of_birth" class="form-control" 
+                                   value="{{ form.date_of_birth.value|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Select Gender</option>
+                                <option value="M" {% if form.gender.value == 'M' %}selected{% endif %}>Male</option>
+                                <option value="F" {% if form.gender.value == 'F' %}selected{% endif %}>Female</option>
+                                <option value="O" {% if form.gender.value == 'O' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Address</label>
+                            <textarea name="address" class="form-control" rows="2">{{ form.address.value|default:'' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Profile Photo</label>
+                            <input type="file" name="profile_picture" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Professional Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+                        <input type="text" name="employee_id" class="form-control" 
+                               value="{{ form.employee_id.value|default:'' }}" required
+                               placeholder="e.g., FAC2026001">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Department</label>
+                        <select name="department" class="form-select">
+                            <option value="">Select Department</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if form.department.value|add:0 == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Designation</label>
+                        <select name="designation" class="form-select">
+                            <option value="">Select Designation</option>
+                            {% for des in designations %}
+                            <option value="{{ des }}" {% if form.designation.value == des %}selected{% endif %}>{{ des }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control" 
+                               value="{{ form.specialization.value|default:'' }}"
+                               placeholder="Area of expertise">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Joining Date</label>
+                        <input type="date" name="joining_date" class="form-control" 
+                               value="{{ form.joining_date.value|date:'Y-m-d'|default:'' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-phone-alt me-2"></i>Emergency Contact</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Emergency Contact Name</label>
+                        <input type="text" name="emergency_contact_name" class="form-control" 
+                               value="{{ form.emergency_contact_name.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Relationship</label>
+                        <input type="text" name="emergency_contact_relation" class="form-control" 
+                               value="{{ form.emergency_contact_relation.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Emergency Contact Phone</label>
+                        <input type="tel" name="emergency_contact_phone" class="form-control" 
+                               value="{{ form.emergency_contact_phone.value|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Emergency Contact Email</label>
+                        <input type="email" name="emergency_contact_email" class="form-control" 
+                               value="{{ form.emergency_contact_email.value|default:'' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control" 
+                                   value="{{ form.username.value|default:'' }}" required>
+                        </div>
+                        {% if not teacher %}
+                        <div class="col-md-6">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password1" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password2" class="form-control" required>
+                        </div>
+                        {% endif %}
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select name="is_active" class="form-select">
+                                <option value="True" {% if form.is_active.value == True or form.is_active.value == 'True' %}selected{% endif %}>Active</option>
+                                <option value="False" {% if form.is_active.value == False %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="col-12">
+            <div class="d-flex gap-2 justify-content-end">
+                <a href="{% url 'teachers:teacher_list' %}" class="btn btn-outline">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> 
+                    {% if teacher %}Update Teacher{% else %}Create Teacher{% endif %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

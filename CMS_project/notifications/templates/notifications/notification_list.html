@@ -1,0 +1,264 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-bell me-2"></i>Notifications</h1>
+            <p class="text-muted">Manage announcements and notifications</p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'notifications:announcement_create' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-bullhorn me-1"></i> Add Announcement
+            </a>
+            <a href="{% url 'notifications:message_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Send Message
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-bullhorn"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ announcements|length|default:0 }}</span>
+                    <span class="stat-label">Announcements</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ unread|default:0 }}</span>
+                    <span class="stat-label">Unread</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ messages|default:0 }}</span>
+                    <span class="stat-label">Messages</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ views|default:0 }}</span>
+                    <span class="stat-label">Total Views</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="card mb-4">
+        <div class="card-header p-0">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#announcements">
+                        <i class="fas fa-bullhorn me-1"></i> Announcements
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notifications">
+                        <i class="fas fa-bell me-1"></i> My Notifications
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#messages">
+                        <i class="fas fa-envelope me-1"></i> Messages
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Announcements Tab -->
+                <div class="tab-pane fade show active" id="announcements">
+                    <div class="row g-4">
+                        {% for announcement in announcements %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 {% if not announcement.is_active %}opacity-50{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <span class="badge bg-{% if announcement.priority == 'high' %}danger{% elif announcement.priority == 'medium' %}warning{% else %}info{% endif %}">
+                                            {{ announcement.get_priority_display }}
+                                        </span>
+                                        <small class="text-muted">{{ announcement.created_at|timesince }} ago</small>
+                                    </div>
+                                    <h5 class="card-title">{{ announcement.title }}</h5>
+                                    <p class="card-text text-muted">{{ announcement.content|truncatechars:100 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <small>
+                                            <i class="fas fa-user me-1"></i>
+                                            {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}
+                                        </small>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'notifications:announcement_detail' announcement.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'notifications:announcement_update' announcement.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'notifications:announcement_delete' announcement.pk %}" class="btn btn-ghost text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ announcement.created_at|date:"M d, Y" }}
+                                        {% if announcement.expires_at %}
+                                        | Expires: {{ announcement.expires_at|date:"M d, Y" }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                            <h5>No announcements found</h5>
+                            <a href="{% url 'notifications:announcement_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Create Announcement
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- My Notifications Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="list-group">
+                        {% for notification in user_notifications %}
+                        <div class="list-group-item {% if not notification.is_read %}bg-dark-subtle{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        {% if notification.notification_type == 'announcement' %}
+                                        <i class="fas fa-bullhorn text-primary"></i>
+                                        {% elif notification.notification_type == 'result' %}
+                                        <i class="fas fa-chart-line text-success"></i>
+                                        {% elif notification.notification_type == 'attendance' %}
+                                        <i class="fas fa-calendar-check text-warning"></i>
+                                        {% elif notification.notification_type == 'fee' %}
+                                        <i class="fas fa-dollar-sign text-info"></i>
+                                        {% else %}
+                                        <i class="fas fa-bell text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ notification.title }}</h6>
+                                        <p class="mb-1 text-muted">{{ notification.message|truncatechars:100 }}</p>
+                                        <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                    </div>
+                                </div>
+                                <div>
+                                    {% if not notification.is_read %}
+                                    <a href="{% url 'notifications:mark_read' notification.pk %}" class="btn btn-sm btn-ghost">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                            <h5>No notifications</h5>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Messages Tab -->
+                <div class="tab-pane fade" id="messages">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th width="100">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for message in all_messages %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2" style="width: 32px; height: 32px; font-size: 12px;">
+                                                {{ message.sender.get_short_name|default:message.sender.username|slice:":1"|upper }}
+                                            </div>
+                                            {{ message.sender.get_full_name|default:message.sender.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if message.recipient %}
+                                        {{ message.recipient.get_full_name|default:message.recipient.username }}
+                                        {% else %}
+                                        <span class="badge bg-secondary">All</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ message.subject|truncatechars:30 }}</strong></td>
+                                    <td>{{ message.content|truncatechars:40 }}</td>
+                                    <td>{{ message.sent_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'notifications:message_detail' message.pk %}" class="btn btn-ghost">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'notifications:message_delete' message.pk %}" class="btn btn-ghost text-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                                        <h5>No messages sent</h5>
+                                        <a href="{% url 'notifications:message_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-1"></i> Send Message
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

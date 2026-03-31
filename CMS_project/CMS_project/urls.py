@@ -1,18 +1,33 @@
 from django.contrib import admin
-from django.urls import path, include
-from django.shortcuts import redirect
+from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.generic import TemplateView, RedirectView
+from core.views import dashboard, landing_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Redirect homepage to dashboard (we'll create it soon)
-    path('', lambda request: redirect('dashboard/'), name='home'),
+    # Root landing page
+    path('', landing_page, name='landing'),
     
-    # Include our apps (we'll add more later)
-    # path('accounts/', include('accounts.urls')),
-    # path('core/', include('core.urls')),
+    # Shortcut dashboard URL redirect
+    path('dashboard/', RedirectView.as_view(url='/core/dashboard/', permanent=False), name='dashboard_shortcut'),
+    
+    # App URLs
+    path('accounts/', include('accounts.urls')),
+    path('core/', include('core.urls')),
+    path('students/', include('students.urls')),
+    path('teachers/', include('teachers.urls')),
+    path('courses/', include('courses.urls')),
+    path('attendance/', include('attendance.urls')),
+    path('results/', include('results.urls')),
+    path('fees/', include('fees.urls')),
+    path('timetable/', include('timetable.urls')),
+    path('notifications/', include('notifications.urls')),
 ]
 
-# Optional: Add this at the bottom for better error pages during development
-# handler404 = 'core.views.custom_404'
-# handler500 = 'core.views.custom_500'
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

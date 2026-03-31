@@ -1,0 +1,274 @@
+{% extends 'layouts/dashboard.html' %}
+{% load static %}
+
+{% block page_title %}Students{% endblock %}
+
+{% block extra_css %}
+{% include 'includes/dashboard_form_styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+    <!-- Page Header -->
+    <div class="dash-header">
+        <div class="dash-title">
+            <h1><i class="fas fa-user-graduate me-2"></i>Students</h1>
+            <p class="text-muted">Manage all registered students in the system</p>
+        </div>
+        <div class="dash-actions">
+            <a href="{% url 'students:student_import' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-file-import me-1"></i> Import CSV
+            </a>
+            <a href="{% url 'students:student_export' %}" class="btn btn-outline btn-sm">
+                <i class="fas fa-file-export me-1"></i> Export CSV
+            </a>
+            <a href="{% url 'students:student_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Add Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ students|length|default:0 }}</span>
+                    <span class="stat-label">Total Students</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ active_count|default:0 }}</span>
+                    <span class="stat-label">Active</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ pending_count|default:0 }}</span>
+                    <span class="stat-label">Pending</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-number">{{ current_year|default:"2026" }}</span>
+                    <span class="stat-label">Academic Year</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search by name, ID, email..." 
+                           value="{{ request.GET.search|default:'' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="graduated" {% if request.GET.status == 'graduated' %}selected{% endif %}>Graduated</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Department</label>
+                    <select name="department" class="form-select">
+                        <option value="">All</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if request.GET.department|add:0 == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Class</label>
+                    <select name="class_id" class="form-select">
+                        <option value="">All</option>
+                        {% for cls in classes %}
+                        <option value="{{ cls.id }}" {% if request.GET.class_id|add:0 == cls.id %}selected{% endif %}>{{ cls.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'students:student_list' %}" class="btn btn-outline">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" class="form-check-input" id="selectAll">
+                            </th>
+                            <th>Student</th>
+                            <th>ID</th>
+                            <th>Class</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Contact</th>
+                            <th width="120">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input student-checkbox" value="{{ student.id }}">
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3" style="background: {% if student.user.get_full_name %}#{{ student.user.id|slice:'1'|add:'100' }}44{% else %}#6366f1{% endif %};">
+                                        {{ student.user.get_short_name|default:student.user.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'students:student_detail' student.pk %}" class="text-decoration-none fw-semibold">
+                                            {{ student.user.get_full_name|default:student.user.username }}
+                                        </a>
+                                        <small class="d-block text-muted">{{ student.date_of_birth|date:"M d, Y" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <code class="bg-dark px-2 py-1 rounded">{{ student.student_id }}</code>
+                            </td>
+                            <td>
+                                {% if student.current_class %}
+                                <span class="badge bg-primary">{{ student.current_class.name }}</span>
+                                {% else %}
+                                <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.department %}
+                                {{ student.department.name }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if student.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ student.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <small>
+                                    {% if student.user.email %}
+                                    <div><i class="fas fa-envelope me-1 text-muted"></i>{{ student.user.email }}</div>
+                                    {% endif %}
+                                    {% if student.phone %}
+                                    <div><i class="fas fa-phone me-1 text-muted"></i>{{ student.phone }}</div>
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'students:student_detail' student.pk %}" class="btn btn-sm btn-ghost" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'students:student_update' student.pk %}" class="btn btn-sm btn-ghost" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'students:student_delete' student.pk %}" class="btn btn-sm btn-ghost text-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                <div class="empty-state">
+                                    <i class="fas fa-user-graduate fa-3x text-muted mb-3"></i>
+                                    <h5>No students found</h5>
+                                    <p class="text-muted">Get started by adding your first student</p>
+                                    <a href="{% url 'students:student_create' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> Add Student
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if students.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted">
+            Showing {{ students.start_index }} to {{ students.end_index }} of {{ students.paginator.count }} entries
+        </div>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if students.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ students.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in students.paginator.page_range %}
+                    {% if students.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if students.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ students.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('selectAll')?.addEventListener('change', function() {
+    document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}
+{% endblock %}

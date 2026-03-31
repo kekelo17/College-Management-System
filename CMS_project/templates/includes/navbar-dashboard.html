@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>College ERP — Navbar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: #0A0A0B; }
+
+:root {
+  --gold:          #C9A84C;
+  --gold-light:    #E8C96A;
+  --gold-dim:      rgba(201,168,76,0.12);
+  --gold-glow:     rgba(201,168,76,0.18);
+  --ink:           #0A0A0B;
+  --ink-2:         #111113;
+  --ink-3:         #1A1A1D;
+  --border:        rgba(255,255,255,0.065);
+  --border-mid:    rgba(255,255,255,0.10);
+  --text:          #E8E8EC;
+  --text-mid:      rgba(232,232,236,0.62);
+  --text-muted:    rgba(232,232,236,0.36);
+  --text-dim:      rgba(232,232,236,0.22);
+  --error:         #E05A5A;
+  --success:       #4ADE80;
+  --radius:        2px;
+  --transition:    0.17s cubic-bezier(.4,0,.2,1);
+}
+
+/* ════════════════════════════════
+   GRAIN OVERLAY
+════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none; z-index: 9999; opacity: 0.55;
+}
+
+/* ════════════════════════════════
+   TOP NAVBAR
+════════════════════════════════ */
+.top-nav {
+  position: sticky; top: 0; z-index: 200;
+  height: 62px;
+  background: rgba(10,10,11,0.88);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+  /* Gold hair-line top highlight */
+  box-shadow:
+    inset 0 1px 0 rgba(201,168,76,0.10),
+    0 4px 32px rgba(0,0,0,0.40);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 12px;
+  animation: nav-in 0.5s ease both;
+}
+
+@keyframes nav-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hamburger (mobile) ── */
+.nav-hamburger {
+  width: 36px; height: 36px; border-radius: var(--radius);
+  background: transparent; border: 1px solid transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 14px;
+  cursor: pointer; flex-shrink: 0;
+  transition: all var(--transition);
+}
+.nav-hamburger:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border-mid);
+  color: var(--text);
+}
+@media (min-width: 1024px) { .nav-hamburger { display: none; } }
+
+/* ── Brand (mobile) ── */
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; flex-shrink: 0;
+}
+.brand-diamond {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  transform: rotate(45deg); flex-shrink: 0;
+  transition: box-shadow var(--transition);
+}
+.brand-diamond:hover { box-shadow: 0 0 18px var(--gold-glow); }
+.brand-diamond-inner { width: 10px; height: 10px; background: var(--gold); }
+.brand-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem; font-weight: 500;
+  color: var(--text); letter-spacing: 0.03em;
+}
+@media (min-width: 1024px) { .nav-brand { display: none; } }
+
+/* ── Search ── */
+.nav-search {
+  flex: 1; max-width: 440px;
+  margin: 0 auto; position: relative;
+}
+.search-wrap {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 12px; height: 36px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.search-wrap:focus-within {
+  border-color: rgba(201,168,76,0.35);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+}
+.search-wrap i { color: var(--text-dim); font-size: 11px; flex-shrink: 0; transition: color var(--transition); }
+.search-wrap:focus-within i { color: var(--gold); }
+.search-wrap input {
+  background: transparent; border: none; outline: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 300; color: var(--text); width: 100%;
+}
+.search-wrap input::placeholder { color: var(--text-dim); }
+.search-kbd {
+  font-size: 9.5px; color: var(--text-dim);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-mid);
+  border-radius: 3px; padding: 2px 6px;
+  white-space: nowrap; flex-shrink: 0; letter-spacing: 0.04em;
+}
+@media (max-width: 767px) { .nav-search { display: none; } }
+
+/* ── Right actions ── */
+.nav-end {
+  display: flex; align-items: center; gap: 2px;
+  margin-left: auto; flex-shrink: 0;
+}
+
+/* Icon button */
+.nav-icon-btn {
+  width: 36px; height: 36px; border-radius: var(--radius);
+  background: transparent; border: 1px solid transparent;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted); font-size: 14px;
+  cursor: pointer; position: relative;
+  transition: all var(--transition); flex-shrink: 0;
+}
+.nav-icon-btn:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border-mid);
+  color: var(--text);
+}
+
+/* Notification badge */
+.notif-badge {
+  position: absolute; top: 7px; right: 7px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--error);
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 0 8px rgba(224,90,90,0.6);
+  animation: badge-pop 0.3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badge-pop {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+/* Separator */
+.nav-sep {
+  width: 1px; height: 18px;
+  background: var(--border); margin: 0 6px; flex-shrink: 0;
+}
+
+/* ── User button ── */
+.user-btn {
+  display: flex; align-items: center; gap: 9px;
+  padding: 4px 10px 4px 5px;
+  border-radius: var(--radius);
+  background: transparent; border: 1px solid transparent;
+  cursor: pointer; position: relative;
+  transition: all var(--transition);
+}
+.user-btn:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: var(--border-mid);
+}
+.user-btn:focus { outline: none; }
+
+.user-avatar {
+  width: 30px; height: 30px; border-radius: var(--radius);
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--gold); flex-shrink: 0;
+}
+.user-info { min-width: 0; }
+.user-name {
+  font-size: 12px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100px;
+}
+.user-role {
+  font-size: 9.5px; color: var(--text-muted);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-top: 1px;
+}
+.user-chevron {
+  color: var(--text-dim); font-size: 9px; margin-left: 2px;
+  transition: transform var(--transition);
+}
+@media (max-width: 639px) { .user-info, .user-chevron { display: none; } }
+
+/* ════════════════════════════════
+   DROPDOWN
+════════════════════════════════ */
+.dropdown-wrap { position: relative; }
+
+.dropdown-menu {
+  position: absolute; top: calc(100% + 10px); right: 0;
+  width: 220px;
+  background: var(--ink-2);
+  border: 1px solid var(--border-mid);
+  border-radius: 4px;
+  padding: 6px;
+  box-shadow:
+    0 12px 48px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.03),
+    inset 0 1px 0 rgba(201,168,76,0.08);
+  z-index: 300; display: none;
+  animation: drop-in 0.16s cubic-bezier(.4,0,.2,1);
+}
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-5px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dropdown-menu.open { display: block; }
+
+/* Dropdown header */
+.drop-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border); margin-bottom: 5px;
+}
+.drop-avatar {
+  width: 34px; height: 34px; border-radius: var(--radius);
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--gold); flex-shrink: 0;
+}
+.drop-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.drop-role {
+  font-size: 9.5px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-top: 2px; display: flex; align-items: center; gap: 5px;
+}
+.status-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 5px rgba(74,222,128,0.5);
+  display: inline-block; flex-shrink: 0;
+}
+
+/* Dropdown items */
+.drop-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radius);
+  color: var(--text-muted); font-size: 12.5px; font-weight: 300;
+  text-decoration: none; cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition); white-space: nowrap;
+}
+.drop-item .di-icon {
+  width: 15px; text-align: center; font-size: 11px;
+  color: var(--text-dim); transition: color var(--transition); flex-shrink: 0;
+}
+.drop-item:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  border-color: var(--border);
+}
+.drop-item:hover .di-icon { color: var(--gold); }
+
+.drop-item .drop-shortcut {
+  margin-left: auto; font-size: 9.5px; color: var(--text-dim);
+  letter-spacing: 0.03em;
+}
+
+.drop-item.danger { color: rgba(224,90,90,0.65); }
+.drop-item.danger .di-icon { color: rgba(224,90,90,0.4); }
+.drop-item.danger:hover {
+  color: var(--error);
+  background: rgba(224,90,90,0.07);
+  border-color: rgba(224,90,90,0.14);
+}
+.drop-item.danger:hover .di-icon { color: var(--error); }
+
+.drop-sep { height: 1px; background: var(--border); margin: 5px 0; }
+
+/* ════════════════════════════════
+   BREADCRUMB SUB-BAR
+════════════════════════════════ */
+.sub-bar {
+  height: 34px;
+  background: rgba(10,10,11,0.65);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center;
+  padding: 0 22px; gap: 7px;
+}
+.crumb {
+  font-size: 11px; color: var(--text-dim);
+  display: flex; align-items: center; gap: 6px;
+  text-decoration: none; letter-spacing: 0.03em;
+  transition: color var(--transition);
+}
+.crumb:hover { color: var(--gold); }
+.crumb.active { color: var(--text-mid); font-weight: 400; }
+.crumb-sep { color: var(--text-dim); font-size: 8px; opacity: 0.4; }
+
+/* ════════════════════════════════
+   DEMO STAGE
+════════════════════════════════ */
+.stage {
+  height: calc(100vh - 96px);
+  background: var(--ink);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 20px;
+  position: relative; overflow: hidden;
+}
+
+/* Central glow */
+.stage::before {
+  content: '';
+  position: absolute; top: 40%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(201,168,76,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.stage-label {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(255,255,255,0.06);
+}
+
+/* Dot grid */
+.dot-grid {
+  display: grid; grid-template-columns: repeat(14, 1fr); gap: 14px; opacity: 0.05;
+}
+.dot-grid span { width: 2px; height: 2px; border-radius: 50%; background: #fff; display: block; }
+
+/* Center card */
+.stage-card {
+  position: relative; z-index: 2;
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 28px 36px;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(201,168,76,0.06);
+}
+.stage-card-eyebrow {
+  font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold); display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-bottom: 12px;
+}
+.stage-card-eyebrow::before, .stage-card-eyebrow::after {
+  content: ''; display: block; width: 18px; height: 1px; background: var(--gold); opacity: 0.5;
+}
+.stage-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem; font-weight: 400; color: var(--text);
+  margin-bottom: 8px;
+}
+.stage-card h2 em { font-style: italic; color: var(--gold); }
+.stage-card p { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     NAVBAR
+════════════════════════════════ -->
+<nav class="top-nav">
+
+  <!-- Hamburger — mobile -->
+  <label for="dashboard-drawer" class="nav-hamburger" aria-label="Open sidebar">
+    <i class="fa-solid fa-bars"></i>
+  </label>
+
+  <!-- Brand — mobile only -->
+  <a href="/dashboard/" class="nav-brand">
+    <div class="brand-diamond">
+      <div class="brand-diamond-inner"></div>
+    </div>
+    <span class="brand-name">College ERP</span>
+  </a>
+
+  <!-- Search -->
+  <div class="nav-search">
+    <div class="search-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        type="search"
+        name="q"
+        id="main-search"
+        placeholder="Search students, courses, faculty…"
+        aria-label="Global search"
+        autocomplete="off"
+      />
+      <span class="search-kbd">⌘ K</span>
+    </div>
+  </div>
+
+  <!-- Right side -->
+  <div class="nav-end">
+
+    <!-- Theme toggle -->
+    <button class="nav-icon-btn" id="theme-btn" aria-label="Toggle theme" title="Toggle theme">
+      <i class="fa-solid fa-circle-half-stroke"></i>
+    </button>
+
+    <!-- Notifications -->
+    <button class="nav-icon-btn" id="notif-btn" aria-label="Notifications">
+      <i class="fa-regular fa-bell"></i>
+      <span class="notif-badge"></span>
+    </button>
+
+    <div class="nav-sep"></div>
+
+    <!-- User button + dropdown -->
+    <div class="dropdown-wrap">
+      <button class="user-btn" id="user-btn" aria-label="User menu" aria-expanded="false">
+        <div class="user-avatar">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div class="user-info">
+          <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="user-role">
+            {% if user.is_superuser %}Administrator
+            {% elif user.is_staff %}Staff
+            {% elif user.is_teacher %}Faculty
+            {% elif user.is_student %}Student
+            {% else %}User{% endif %}
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-down user-chevron" id="user-chevron"></i>
+      </button>
+
+      <!-- Dropdown menu -->
+      <div class="dropdown-menu" id="user-dropdown" role="menu">
+
+        <!-- Header -->
+        <div class="drop-header">
+          <div class="drop-avatar"><i class="fa-solid fa-user-tie"></i></div>
+          <div>
+            <div class="drop-name">
+              {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Guest{% endif %}
+            </div>
+            <div class="drop-role">
+              <span class="status-dot"></span>
+              {% if user.is_superuser %}Administrator
+              {% elif user.is_teacher %}Faculty
+              {% elif user.is_student %}Student
+              {% else %}Active{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <a href="/dashboard/" class="drop-item">
+          <i class="di-icon fa-solid fa-house-chimney"></i>
+          Dashboard
+        </a>
+        <a href="#" class="drop-item">
+          <i class="di-icon fa-solid fa-circle-user"></i>
+          My Profile
+        </a>
+        <a href="#" class="drop-item">
+          <i class="di-icon fa-solid fa-sliders"></i>
+          Settings
+        </a>
+        <a href="#" class="drop-item">
+          <i class="di-icon fa-solid fa-keyboard"></i>
+          Keyboard Shortcuts
+          <span class="drop-shortcut">⌘ /</span>
+        </a>
+
+        <div class="drop-sep"></div>
+
+        <a href="{% url 'logout' %}" class="drop-item danger">
+          <i class="di-icon fa-solid fa-arrow-right-from-bracket"></i>
+          Sign Out
+        </a>
+
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ════════════════════════════════
+     BREADCRUMB SUB-BAR
+════════════════════════════════ -->
+<div class="sub-bar">
+  <a href="/dashboard/" class="crumb">
+    <i class="fa-solid fa-house-chimney" style="font-size:9px;"></i>
+  </a>
+  <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+  <a href="#" class="crumb">Administration</a>
+  <span class="crumb-sep"><i class="fa-solid fa-chevron-right"></i></span>
+  <span class="crumb active">Dashboard</span>
+</div>
+
+<!-- ════════════════════════════════
+     DEMO STAGE
+════════════════════════════════ -->
+<div class="stage">
+  <div class="dot-grid">
+    {% for i in "12345678910111213141516171819202122232425262728" %}
+      <span></span>
+    {% endfor %}
+    <!-- Static fallback for demo -->
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="stage-card">
+    <div class="stage-card-eyebrow">Dashboard</div>
+    <h2>Your workspace, <em>awaits</em></h2>
+    <p>Select a module from the sidebar to get started.</p>
+  </div>
+
+  <span class="stage-label">College ERP — v1.0</span>
+</div>
+
+<!-- ════════════════════════════════
+     JS
+════════════════════════════════ -->
+<script>
+// ── User dropdown ──
+const userBtn      = document.getElementById('user-btn');
+const userDropdown = document.getElementById('user-dropdown');
+const userChevron  = document.getElementById('user-chevron');
+
+userBtn.addEventListener('click', e => {
+  e.stopPropagation();
+  const open = userDropdown.classList.toggle('open');
+  userBtn.setAttribute('aria-expanded', open);
+  userChevron.style.transform = open ? 'rotate(180deg)' : 'rotate(0)';
+});
+
+document.addEventListener('click', () => {
+  userDropdown.classList.remove('open');
+  userBtn.setAttribute('aria-expanded', 'false');
+  userChevron.style.transform = 'rotate(0)';
+});
+
+// ── ⌘K search focus ──
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('main-search')?.focus();
+  }
+});
+</script>
+
+</body>
+</html>

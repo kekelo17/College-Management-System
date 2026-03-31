@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="night">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block page_title %}Dashboard{% endblock %} — EduForge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600&family=DM+Sans:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['"Fraunces"', "serif"],
+              ui: ['"DM Sans"', "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { height: 100%; font-family: 'DM Sans', sans-serif; }
+
+      :root {
+        --c-bg:          #0a0d12;
+        --c-surface:     #13171f;
+        --c-raise:       #181d27;
+        --c-card:        #161b25;
+        --c-border:      rgba(255,255,255,0.055);
+        --c-border-mid:  rgba(255,255,255,0.10);
+        --c-text:        #dde1ea;
+        --c-muted:       rgba(221,225,234,0.38);
+        --c-dim:         rgba(221,225,234,0.22);
+        --c-gold:        #c9a96e;
+        --c-gold-soft:   rgba(201,169,110,0.10);
+        --c-gold-glow:   rgba(201,169,110,0.22);
+        --c-teal:        #4ecdc4;
+        --c-teal-soft:   rgba(78,205,196,0.10);
+        --c-violet:      #a78bfa;
+        --c-violet-soft: rgba(167,139,250,0.10);
+        --c-red:         #ff6b6b;
+        --c-red-soft:    rgba(255,107,107,0.10);
+        --c-green:       #34d399;
+        --c-green-soft:  rgba(52,211,153,0.10);
+        --transition:    0.18s cubic-bezier(.4,0,.2,1);
+        --gold:          #C9A84C;
+        --gold-light:    #E8C96A;
+        --gold-dim:      rgba(201,168,76,0.11);
+        --gold-glow:     rgba(201,168,76,0.18);
+        --gold-border:   rgba(201,168,76,0.22);
+        --ink:           #0A0A0B;
+        --ink-2:         #111113;
+        --ink-3:         #16181C;
+        --ink-4:         #1A1A1D;
+        --border:        rgba(255,255,255,0.065);
+        --border-mid:    rgba(255,255,255,0.10);
+        --text:          #E8E8EC;
+        --text-mid:      rgba(232,232,236,0.62);
+        --text-muted:    rgba(232,232,236,0.36);
+        --text-dim:      rgba(232,232,236,0.20);
+        --success:       #4ADE80;
+        --error:         #E05A5A;
+        --teal:          #4ECDC4;
+        --teal-dim:      rgba(78,205,196,0.10);
+        --sidebar-w:     264px;
+        --radius:        2px;
+      }
+
+      body { background: var(--c-bg); color: var(--c-text); }
+
+      /* ════════════════════════════════
+         GRAIN
+      ════════════════════════════════ */
+      body::before {
+        content: '';
+        position: fixed; inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+        background-size: 128px 128px;
+        pointer-events: none; z-index: 9999; opacity: 0.55;
+      }
+
+      /* ════════════════════════════════
+         SIDEBAR SHELL
+      ════════════════════════════════ */
+      .sidebar {
+        width: var(--sidebar-w);
+        min-height: 100vh;
+        background: var(--ink-2);
+        display: flex; flex-direction: column;
+        border-right: 1px solid var(--border);
+        position: relative; overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      /* Grid texture */
+      .sidebar::before {
+        content: '';
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(var(--border) 1px, transparent 1px),
+          linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: radial-gradient(ellipse 85% 60% at 20% 20%, black 0%, transparent 100%);
+        pointer-events: none; z-index: 0;
+      }
+
+      /* Radial gold glow top-left */
+      .sidebar::after {
+        content: '';
+        position: absolute;
+        top: -100px; left: -80px;
+        width: 360px; height: 360px;
+        background: radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 65%);
+        pointer-events: none; z-index: 0;
+        animation: glow-breathe 7s ease-in-out infinite alternate;
+      }
+      @keyframes glow-breathe {
+        from { opacity: 0.7; transform: scale(1); }
+        to   { opacity: 1;   transform: scale(1.1); }
+      }
+
+      /* ════════════════════════════════
+         HEADER
+      ════════════════════════════════ */
+      .s-header {
+        position: relative; z-index: 2;
+        padding: 24px 18px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .brand-row {
+        display: flex; align-items: center; gap: 11px;
+      }
+
+      .brand-diamond {
+        width: 34px; height: 34px;
+        border: 1.5px solid var(--gold);
+        display: flex; align-items: center; justify-content: center;
+        transform: rotate(45deg); flex-shrink: 0;
+        transition: box-shadow var(--transition);
+      }
+      .brand-diamond:hover {
+        box-shadow: 0 0 20px var(--gold-glow);
+      }
+      .brand-diamond-inner {
+        width: 11px; height: 11px;
+        background: var(--gold);
+      }
+
+      .brand-text { line-height: 1; }
+      .brand-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem; font-weight: 500;
+        color: var(--text); letter-spacing: 0.02em;
+      }
+      .brand-sub {
+        font-size: 9px; letter-spacing: 0.18em;
+        text-transform: uppercase; color: var(--gold);
+        margin-top: 4px; opacity: 0.75; font-weight: 400;
+      }
+
+      /* ════════════════════════════════
+         SEARCH
+      ════════════════════════════════ */
+      .s-search {
+        position: relative; z-index: 2;
+        padding: 12px 14px 8px;
+      }
+
+      .search-inner {
+        display: flex; align-items: center; gap: 9px;
+        background: var(--ink);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0 12px; height: 34px;
+        cursor: text;
+        transition: border-color var(--transition), box-shadow var(--transition);
+      }
+      .search-inner:focus-within {
+        border-color: rgba(201,168,76,0.32);
+        box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+      }
+      .search-inner i { color: var(--text-dim); font-size: 11px; flex-shrink: 0; transition: color var(--transition); }
+      .search-inner:focus-within i { color: var(--gold); }
+      .search-inner input {
+        background: transparent; border: none; outline: none;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12.5px; font-weight: 300; color: var(--text); width: 100%;
+      }
+      .search-inner input::placeholder { color: var(--text-dim); }
+      .search-kbd {
+        margin-left: auto;
+        font-size: 9px; color: var(--text-dim);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--border-mid);
+        border-radius: 3px; padding: 2px 6px;
+        white-space: nowrap; flex-shrink: 0; letter-spacing: 0.04em;
+      }
+
+      /* ════════════════════════════════
+         NAV SCROLL AREA
+      ════════════════════════════════ */
+      .s-nav {
+        position: relative; z-index: 2;
+        flex: 1; overflow-y: auto;
+        padding: 6px 10px 14px;
+        scrollbar-width: none;
+      }
+      .s-nav::-webkit-scrollbar { display: none; }
+
+      /* ── Section label ── */
+      .nav-label {
+        display: flex; align-items: center; gap: 8px;
+        padding: 14px 8px 6px;
+        font-size: 8.5px; font-weight: 500;
+        letter-spacing: 0.18em; text-transform: uppercase;
+        color: var(--text-dim);
+      }
+      .nav-label::after {
+        content: ''; flex: 1; height: 1px;
+        background: linear-gradient(90deg, var(--border-mid) 0%, transparent 100%);
+      }
+
+      /* ── Nav link ── */
+      .nav-link {
+        display: flex; align-items: center; gap: 9px;
+        padding: 8px 10px;
+        border-radius: var(--radius);
+        text-decoration: none; color: var(--text-muted);
+        font-size: 12.5px; font-weight: 300; letter-spacing: 0.01em;
+        border: 1px solid transparent;
+        transition: all var(--transition);
+        position: relative; margin-bottom: 1px;
+        user-select: none;
+      }
+
+      /* Icon */
+      .nav-icon {
+        width: 28px; height: 28px; border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11.5px; flex-shrink: 0;
+        background: transparent; color: var(--text-dim);
+        transition: all var(--transition);
+      }
+
+      .nav-link:hover {
+        color: var(--text);
+        background: rgba(255,255,255,0.03);
+        border-color: var(--border);
+        padding-left: 13px;
+      }
+      .nav-link:hover .nav-icon {
+        background: var(--gold-dim);
+        color: var(--gold);
+      }
+
+      /* Active state */
+      .nav-link.is-active {
+        color: #fff;
+        background: linear-gradient(135deg, rgba(201,168,76,0.13) 0%, rgba(201,168,76,0.05) 100%);
+        border-color: var(--gold-border);
+        font-weight: 400;
+        box-shadow: 0 1px 14px rgba(201,168,76,0.07), inset 0 1px 0 rgba(255,255,255,0.03);
+      }
+      .nav-link.is-active .nav-icon {
+        background: var(--gold);
+        color: var(--ink);
+        box-shadow: 0 0 10px rgba(201,168,76,0.30);
+      }
+      /* Gold left rule */
+      .nav-link.is-active::before {
+        content: '';
+        position: absolute; left: -10px;
+        top: 50%; transform: translateY(-50%);
+        width: 2px; height: 52%;
+        background: linear-gradient(180deg, var(--gold), rgba(201,168,76,0.25));
+        border-radius: 0 2px 2px 0;
+      }
+
+      /* ── Stagger animation ── */
+      .nav-row {
+        opacity: 0; transform: translateX(-8px);
+        animation: row-in 0.30s ease forwards;
+      }
+      @keyframes row-in { to { opacity: 1; transform: translateX(0); } }
+      .nav-row:nth-child(1)  { animation-delay: .04s }
+      .nav-row:nth-child(2)  { animation-delay: .08s }
+      .nav-row:nth-child(3)  { animation-delay: .12s }
+      .nav-row:nth-child(4)  { animation-delay: .16s }
+      .nav-row:nth-child(5)  { animation-delay: .20s }
+      .nav-row:nth-child(6)  { animation-delay: .24s }
+      .nav-row:nth-child(7)  { animation-delay: .28s }
+      .nav-row:nth-child(8)  { animation-delay: .32s }
+      .nav-row:nth-child(9)  { animation-delay: .36s }
+      .nav-row:nth-child(10) { animation-delay: .40s }
+      .nav-row:nth-child(11) { animation-delay: .44s }
+      .nav-row:nth-child(12) { animation-delay: .48s }
+
+      /* ── Badge ── */
+      .n-badge {
+        margin-left: auto; font-size: 9.5px; font-weight: 500;
+        padding: 1.5px 7px; border-radius: 20px; flex-shrink: 0;
+        letter-spacing: 0.03em;
+      }
+      .badge-gold  { background: var(--gold-dim);  color: var(--gold); border: 1px solid var(--gold-border); }
+      .badge-teal  { background: var(--teal-dim);  color: var(--teal); border: 1px solid rgba(78,205,196,0.22); }
+      .badge-alert { background: rgba(224,90,90,0.10); color: var(--error); border: 1px solid rgba(224,90,90,0.22); }
+
+      /* ── Divider ── */
+      .nav-divider {
+        height: 1px; background: var(--border); margin: 8px 8px;
+      }
+
+      /* ════════════════════════════════
+         FOOTER
+      ════════════════════════════════ */
+      .s-footer {
+        position: relative; z-index: 2;
+        padding: 10px 10px 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      /* Help card */
+      .help-card {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 12px;
+        border-radius: var(--radius);
+        background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, rgba(201,168,76,0.03) 100%);
+        border: 1px solid rgba(201,168,76,0.14);
+        margin-bottom: 10px; cursor: pointer;
+        transition: all var(--transition);
+      }
+      .help-card:hover {
+        border-color: rgba(201,168,76,0.28);
+        box-shadow: 0 0 18px rgba(201,168,76,0.08);
+      }
+      .help-icon {
+        width: 30px; height: 30px; border-radius: var(--radius);
+        background: var(--gold); color: var(--ink);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; flex-shrink: 0;
+        box-shadow: 0 0 10px rgba(201,168,76,0.25);
+      }
+      .help-text p { font-size: 11px; font-weight: 500; color: var(--text); }
+      .help-text span { font-size: 9.5px; color: var(--text-muted); letter-spacing: 0.03em; }
+      .help-arrow { margin-left: auto; color: var(--gold); font-size: 10px; opacity: 0.6; }
+
+      /* User row */
+      .user-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.015);
+        cursor: pointer; transition: all var(--transition);
+      }
+      .user-row:hover {
+        background: rgba(255,255,255,0.03);
+        border-color: rgba(201,168,76,0.16);
+      }
+      .user-avatar {
+        width: 32px; height: 32px; border-radius: var(--radius);
+        background: var(--gold-dim);
+        border: 1px solid var(--gold-border);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; color: var(--gold); flex-shrink: 0;
+      }
+      .user-meta { flex: 1; min-width: 0; }
+      .user-name {
+        font-size: 12px; font-weight: 500; color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .user-role {
+        font-size: 9.5px; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.08em;
+        display: flex; align-items: center; gap: 5px; margin-top: 2px;
+      }
+      .status-dot {
+        width: 5px; height: 5px; border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 5px rgba(74,222,128,0.5);
+        flex-shrink: 0;
+      }
+      .user-caret { color: var(--text-dim); font-size: 11px; transition: color var(--transition); }
+      .user-row:hover .user-caret { color: var(--text-muted); }
+
+      /* ════════════════════════════════
+         TOP NAVBAR
+      ════════════════════════════════ */
+      .top-nav {
+        position: sticky; top: 0; z-index: 200;
+        height: 62px;
+        background: rgba(10,10,11,0.88);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-bottom: 1px solid var(--border);
+        box-shadow:
+          inset 0 1px 0 rgba(201,168,76,0.10),
+          0 4px 32px rgba(0,0,0,0.40);
+        display: flex; align-items: center;
+        padding: 0 20px; gap: 12px;
+        animation: nav-in 0.5s ease both;
+      }
+
+      @keyframes nav-in {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ── Hamburger (mobile) ── */
+      .nav-hamburger {
+        width: 36px; height: 36px; border-radius: var(--radius);
+        background: transparent; border: 1px solid transparent;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text-muted); font-size: 14px;
+        cursor: pointer; flex-shrink: 0;
+        transition: all var(--transition);
+      }
+      .nav-hamburger:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: var(--border-mid);
+        color: var(--text);
+      }
+      @media (min-width: 1024px) { .nav-hamburger { display: none; } }
+
+      /* ── Brand (mobile) ── */
+      .nav-brand {
+        display: flex; align-items: center; gap: 10px;
+        text-decoration: none; flex-shrink: 0;
+      }
+      @media (min-width: 1024px) { .nav-brand { display: none; } }
+
+      /* ── Search ── */
+      .nav-search {
+        flex: 1; max-width: 440px;
+        margin: 0 auto; position: relative;
+      }
+      .search-wrap {
+        display: flex; align-items: center; gap: 9px;
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0 12px; height: 36px;
+        transition: border-color var(--transition), box-shadow var(--transition);
+      }
+      .search-wrap:focus-within {
+        border-color: rgba(201,168,76,0.35);
+        box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+      }
+      .search-wrap i { color: var(--text-dim); font-size: 11px; flex-shrink: 0; transition: color var(--transition); }
+      .search-wrap:focus-within i { color: var(--gold); }
+      .search-wrap input {
+        background: transparent; border: none; outline: none;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 12.5px; font-weight: 300; color: var(--text); width: 100%;
+      }
+      .search-wrap input::placeholder { color: var(--text-dim); }
+
+      /* ── Right side ── */
+      .nav-end {
+        display: flex; align-items: center; gap: 6px;
+        margin-left: auto; flex-shrink: 0;
+      }
+      .nav-icon-btn {
+        width: 36px; height: 36px; border-radius: var(--radius);
+        background: transparent; border: 1px solid transparent;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text-muted); font-size: 14px;
+        cursor: pointer; position: relative;
+        transition: all var(--transition);
+      }
+      .nav-icon-btn:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: var(--border-mid);
+        color: var(--text);
+      }
+      .notif-badge {
+        position: absolute; top: 6px; right: 6px;
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--error);
+        border: 1.5px solid var(--ink);
+        box-shadow: 0 0 6px rgba(255,107,107,0.5);
+      }
+      .nav-sep {
+        width: 1px; height: 20px;
+        background: var(--border);
+        margin: 0 4px;
+      }
+
+      /* ── User dropdown ── */
+      .dropdown-wrap { position: relative; }
+      .user-btn {
+        display: flex; align-items: center; gap: 9px;
+        padding: 4px 10px 4px 5px;
+        border-radius: var(--radius);
+        background: transparent; border: 1px solid transparent;
+        cursor: pointer; transition: all var(--transition);
+      }
+      .user-btn:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: var(--border-mid);
+      }
+      .user-avatar-sm {
+        width: 30px; height: 30px; border-radius: var(--radius);
+        background: linear-gradient(145deg, rgba(201,169,110,0.25), rgba(78,205,196,0.15));
+        border: 1px solid rgba(201,169,110,0.25);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; color: var(--gold); flex-shrink: 0;
+      }
+      .user-info { min-width: 0; }
+      .user-name {
+        font-size: 12.5px; font-weight: 600; color: var(--text);
+        max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .user-role {
+        font-size: 10px; color: var(--text-muted); margin-top: 1px;
+      }
+      .user-chevron {
+        color: var(--text-dim); font-size: 10px;
+        margin-left: 2px; transition: transform var(--transition);
+      }
+
+      .dropdown-menu {
+        position: absolute; top: calc(100% + 10px); right: 0;
+        width: 224px;
+        background: var(--ink-2);
+        border: 1px solid var(--border-mid);
+        border-radius: var(--radius);
+        padding: 8px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.50), 0 0 0 1px rgba(255,255,255,0.04);
+        z-index: 100; display: none;
+        animation: dropIn .18s cubic-bezier(.4,0,.2,1);
+      }
+      @keyframes dropIn {
+        from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      .dropdown-menu.open { display: block; }
+
+      .drop-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px 10px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 6px;
+      }
+      .drop-avatar {
+        width: 34px; height: 34px; border-radius: var(--radius);
+        background: linear-gradient(145deg, rgba(201,169,110,0.25), rgba(78,205,196,0.15));
+        border: 1px solid rgba(201,169,110,0.25);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; color: var(--gold); flex-shrink: 0;
+      }
+      .drop-name {
+        font-size: 12.5px; font-weight: 600; color: var(--text);
+      }
+      .drop-role {
+        font-size: 10.5px; color: var(--text-muted);
+        margin-top: 1px; display: flex; align-items: center; gap: 5px;
+      }
+      .drop-item {
+        display: flex; align-items: center; gap: 9px;
+        padding: 8px 10px; border-radius: var(--radius);
+        color: var(--text-muted); font-size: 13px;
+        text-decoration: none; cursor: pointer;
+        border: 1px solid transparent;
+        transition: all var(--transition);
+      }
+      .drop-item i {
+        width: 14px; text-align: center; font-size: 12px;
+        color: var(--text-dim); transition: color var(--transition);
+      }
+      .drop-item:hover {
+        color: var(--text);
+        background: rgba(255,255,255,0.04);
+        border-color: var(--border-mid);
+      }
+      .drop-item:hover i { color: var(--gold); }
+      .drop-item.danger {
+        color: rgba(255,107,107,.70);
+      }
+      .drop-item.danger i {
+        color: rgba(255,107,107,.50);
+      }
+      .drop-item.danger:hover {
+        color: var(--error);
+        background: rgba(255,107,107,0.08);
+        border-color: rgba(255,107,107,.15);
+      }
+      .drop-item.danger:hover i { color: var(--error); }
+      .drop-sep {
+        height: 1px; background: var(--border); margin: 6px 0;
+      }
+
+      /* ── Breadcrumb sub-bar ── */
+      .sub-bar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 12px 20px;
+        background: var(--ink-2);
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+      }
+      .crumb {
+        color: var(--text-dim);
+        text-decoration: none;
+        transition: color var(--transition);
+      }
+      .crumb:hover { color: var(--gold); }
+      .crumb.active {
+        color: var(--text);
+        font-weight: 500;
+      }
+      .crumb-sep {
+        color: var(--text-dim);
+        font-size: 9px;
+        opacity: 0.5;
+      }
+
+      /* ════════════════════════════════
+         MAIN CONTENT AREA
+      ════════════════════════════════ */
+      .main-content {
+        background: var(--ink);
+        min-height: calc(100vh - 62px);
+        padding: 32px;
+      }
+
+      /* ── Breadcrumb ── */
+      .breadcrumb-bar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 0 16px; flex-wrap: wrap;
+      }
+
+      /* ── Welcome Header ── */
+      .welcome-row {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px 28px;
+        position: relative; overflow: hidden;
+        opacity: 0; animation: cardIn .4s ease .05s forwards;
+        margin-bottom: 24px;
+      }
+      .welcome-row::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(201,169,110,0.30) 40%, transparent 100%);
+      }
+      .welcome-row::after {
+        content: '';
+        position: absolute; bottom: -60px; right: -40px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .welcome-title {
+        font-family: 'Fraunces', serif;
+        font-size: 26px; font-weight: 600;
+        color: var(--text); line-height: 1.15;
+      }
+      .welcome-title span { color: var(--gold); }
+      .welcome-sub {
+        font-size: 13.5px; color: var(--text-muted); margin-top: 6px;
+      }
+      .pill-stack {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      }
+      .tech-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 11px; font-weight: 500;
+        padding: 4px 11px; border-radius: 20px;
+        border: 1px solid var(--border-mid);
+        color: var(--text-muted);
+        background: rgba(255,255,255,0.03);
+      }
+      .tech-pill i { font-size: 10px; }
+
+      @keyframes cardIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ── Stat Cards ── */
+      .stat-card {
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        position: relative; overflow: hidden;
+        transition: all var(--transition);
+        cursor: default;
+      }
+      .stat-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      }
+      .stat-card:hover {
+        border-color: var(--border-mid);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      }
+      .stat-icon-wrap {
+        width: 40px; height: 40px; border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; margin-bottom: 16px; flex-shrink: 0;
+      }
+      .stat-label {
+        font-size: 11px; font-weight: 600;
+        letter-spacing: .08em; text-transform: uppercase;
+        color: var(--text-dim); margin-bottom: 6px;
+      }
+      .stat-value {
+        font-family: 'Fraunces', serif;
+        font-size: 32px; font-weight: 600;
+        color: var(--text); line-height: 1;
+      }
+      .stat-delta {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 11px; font-weight: 500;
+        padding: 2px 8px; border-radius: 20px; margin-top: 8px;
+      }
+      .delta-up { color: var(--c-green); background: var(--c-green-soft); }
+      .delta-down { color: var(--c-red); background: var(--c-red-soft); }
+      .delta-flat { color: var(--text-muted); background: rgba(255,255,255,0.05); }
+
+      /* Card variants */
+      .card-gold .stat-icon-wrap { background: var(--c-gold-soft); color: var(--c-gold); }
+      .card-teal .stat-icon-wrap { background: var(--c-teal-soft); color: var(--c-teal); }
+      .card-violet .stat-icon-wrap { background: var(--c-violet-soft); color: var(--c-violet); }
+      .card-red .stat-icon-wrap { background: var(--c-red-soft); color: var(--c-red); }
+      .card-gold:hover { border-color: rgba(201,169,110,0.22); box-shadow: 0 8px 32px rgba(201,169,110,0.06); }
+      .card-teal:hover { border-color: rgba(78,205,196,0.18); box-shadow: 0 8px 32px rgba(78,205,196,0.05); }
+      .card-violet:hover { border-color: rgba(167,139,250,0.18); box-shadow: 0 8px 32px rgba(167,139,250,0.05); }
+      .card-red:hover { border-color: rgba(255,107,107,0.18); box-shadow: 0 8px 32px rgba(255,107,107,0.05); }
+
+      /* Animate in */
+      .stat-card {
+        opacity: 0; transform: translateY(14px);
+        animation: cardIn .4s ease forwards;
+      }
+      .stat-card:nth-child(1) { animation-delay: .10s }
+      .stat-card:nth-child(2) { animation-delay: .18s }
+      .stat-card:nth-child(3) { animation-delay: .26s }
+      .stat-card:nth-child(4) { animation-delay: .34s }
+
+      /* ── Section Header ── */
+      .section-hd {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      .section-title {
+        font-size: 13px; font-weight: 600;
+        color: var(--text); letter-spacing: .01em;
+      }
+      .section-action {
+        font-size: 12px; color: var(--gold);
+        text-decoration: none;
+        display: flex; align-items: center; gap: 5px;
+        transition: opacity var(--transition);
+      }
+      .section-action:hover { opacity: .75; }
+
+      /* ── Activity Feed ── */
+      .activity-card {
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        opacity: 0; animation: cardIn .4s ease .42s forwards;
+      }
+      .activity-item {
+        display: flex; align-items: flex-start; gap: 13px;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        transition: background var(--transition);
+      }
+      .activity-item:last-child { border-bottom: none; }
+      .activity-item:hover { background: rgba(255,255,255,0.02); }
+      .act-icon {
+        width: 32px; height: 32px; border-radius: var(--radius);
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; margin-top: 1px;
+      }
+      .act-msg {
+        font-size: 13px; color: var(--text); line-height: 1.45;
+      }
+      .act-msg strong { font-weight: 600; }
+      .act-time {
+        font-size: 11px; color: var(--text-dim); margin-top: 3px;
+      }
+
+      /* ── Quick Actions ── */
+      .quick-card {
+        background: var(--ink-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        opacity: 0; animation: cardIn .4s ease .48s forwards;
+      }
+      .qa-btn {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 14px; border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.02);
+        color: var(--text-muted); font-size: 13px;
+        cursor: pointer; text-decoration: none;
+        transition: all var(--transition);
+        margin-bottom: 8px;
+      }
+      .qa-btn:last-child { margin-bottom: 0; }
+      .qa-icon {
+        width: 30px; height: 30px; border-radius: var(--radius);
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12.5px;
+        transition: all var(--transition);
+      }
+      .qa-btn:hover {
+        color: var(--text);
+        border-color: var(--border-mid);
+        background: rgba(255,255,255,0.04);
+        padding-left: 18px;
+      }
+      .qa-btn:hover .qa-icon {
+        background: var(--c-gold-soft);
+        color: var(--c-gold);
+      }
+      .qa-arrow {
+        margin-left: auto; color: var(--text-dim);
+        font-size: 10px;
+        transition: transform var(--transition);
+      }
+      .qa-btn:hover .qa-arrow {
+        transform: translateX(3px);
+        color: var(--gold);
+      }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar { width: 5px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-mid);
+        border-radius: 10px;
+      }
+
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <!-- ═══════════════════════════ DRAWER LAYOUT ═══════════════════════════ -->
+    <div class="drawer lg:drawer-open">
+      <input id="dashboard-drawer" type="checkbox" class="drawer-toggle" />
+
+      <!-- ══ DRAWER CONTENT ══ -->
+      <div class="drawer-content flex flex-col min-h-screen">
+        <!-- ════════════════════════════════
+     NAVBAR
+════════════════════════════════ -->
+        <nav class="top-nav">
+          <!-- Hamburger — mobile -->
+          <label
+            for="dashboard-drawer"
+            class="nav-hamburger"
+            aria-label="Open sidebar"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </label>
+
+          <!-- Brand — mobile only -->
+          <a href="{% url 'core:dashboard' %}" class="nav-brand">
+            <div class="brand-diamond">
+              <div class="brand-diamond-inner"></div>
+            </div>
+            <span class="brand-name">College ERP</span>
+          </a>
+
+          <!-- Search -->
+          <div class="nav-search">
+            <div class="search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="search"
+                name="q"
+                id="main-search"
+                placeholder="Search students, courses, faculty…"
+                aria-label="Global search"
+                autocomplete="off"
+              />
+              <span class="search-kbd">⌘ K</span>
+            </div>
+          </div>
+
+          <!-- Right side -->
+          <div class="nav-end">
+            <!-- Theme toggle -->
+            <button
+              class="nav-icon-btn"
+              id="theme-btn"
+              aria-label="Toggle theme"
+              title="Toggle theme"
+            >
+              <i class="fa-solid fa-circle-half-stroke"></i>
+            </button>
+
+            <!-- Notifications -->
+            <button
+              class="nav-icon-btn"
+              id="notif-btn"
+              aria-label="Notifications"
+            >
+              <i class="fa-regular fa-bell"></i>
+              <span class="notif-badge"></span>
+            </button>
+
+            <div class="nav-sep"></div>
+
+            <!-- User button + dropdown -->
+            <div class="dropdown-wrap">
+              <button
+                class="user-btn"
+                id="user-btn"
+                aria-label="User menu"
+                aria-expanded="false"
+              >
+                <div class="user-avatar-sm">
+                  <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="user-info">
+                  <div class="user-name">
+                    {{ user.get_full_name|default:user.username }}
+                  </div>
+                  <div class="user-role">
+                    {% if role == 'admin' or user.is_superuser or user.is_staff %}Administrator
+                    {% elif role == 'teacher' %}Faculty
+                    {% elif role == 'student' %}Student
+                    {% else %}User{% endif %}
+                  </div>
+                </div>
+                <i
+                  class="fa-solid fa-chevron-down user-chevron"
+                  id="user-chevron"
+                ></i>
+              </button>
+
+              <!-- Dropdown menu -->
+              <div class="dropdown-menu" id="user-dropdown" role="menu">
+                <!-- Header -->
+                <div class="drop-header">
+                  <div class="drop-avatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                  </div>
+                  <div>
+                    <div class="drop-name">
+                      {% if user.is_authenticated %}{{
+                      user.get_full_name|default:user.username }}{% else
+                      %}Guest{% endif %}
+                    </div>
+                    <div class="drop-role">
+                      <span class="status-dot"></span>
+                      {% if role == 'admin' or user.is_superuser or user.is_staff %}Administrator
+                      {% elif role == 'teacher' %}Faculty
+                      {% elif role == 'student' %}Student
+                      {% else %}Active{% endif %}
+                    </div>
+                  </div>
+                </div>
+
+                <a href="{% url 'core:dashboard' %}" class="drop-item">
+                  <i class="fa-solid fa-house-chimney"></i>
+                  Dashboard
+                </a>
+                <a href="#" class="drop-item">
+                  <i class="fa-solid fa-circle-user"></i>
+                  My Profile
+                </a>
+                <a href="#" class="drop-item">
+                  <i class="fa-solid fa-sliders"></i>
+                  Settings
+                </a>
+                <a href="#" class="drop-item">
+                  <i class="fa-solid fa-keyboard"></i>
+                  Keyboard Shortcuts
+                  <span class="drop-shortcut">⌘ /</span>
+                </a>
+
+                <div class="drop-sep"></div>
+
+                <a href="{% url 'logout' %}" class="drop-item danger">
+                  <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                  Sign Out
+                </a>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- ─── MAIN ─── -->
+        <main class="main-content flex-1">
+          <div class="mx-auto w-full max-w-7xl">
+            <!-- ── BREADCRUMBS slot ── -->
+            {% block breadcrumbs %}
+            <div class="breadcrumb-bar">
+              <a href="{% url 'core:dashboard' %}" class="crumb"
+                ><i
+                  class="fa-solid fa-house-chimney"
+                  style="font-size: 10px"
+                ></i
+              ></a>
+              <span class="crumb-sep"
+                ><i class="fa-solid fa-chevron-right"></i
+              ></span>
+              <span class="crumb active">Dashboard</span>
+            </div>
+            {% endblock %}
+
+            <!-- ── CONTENT slot ── -->
+            {% block content %}
+            <!-- Default content if no override -->
+            {% endblock %}
+          </div>
+        </main>
+      </div>
+
+      <!-- ══ DRAWER SIDEBAR ══ -->
+      <div class="drawer-side z-50">
+        <label for="dashboard-drawer" class="drawer-overlay"></label>
+        <aside class="sidebar">
+          <!-- HEADER -->
+          <header class="s-header">
+            <div class="brand-row">
+              <div class="brand-diamond">
+                <div class="brand-diamond-inner"></div>
+              </div>
+              <div class="brand-text">
+                <div class="brand-name">College ERP</div>
+                <div class="brand-sub">Academic Platform</div>
+              </div>
+            </div>
+          </header>
+
+          <!-- SEARCH -->
+          <div class="s-search">
+            <div class="search-inner">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" placeholder="Quick search…" />
+              <span class="search-kbd">⌘ K</span>
+            </div>
+          </div>
+
+          <!-- NAV -->
+          <nav class="s-nav">
+            <div class="nav-row">
+              <a href="{% url 'core:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" data-page="dashboard">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-house-chimney"></i
+                ></span>
+                <span>Dashboard</span>
+              </a>
+            </div>
+
+            <!-- ══ ADMINISTRATION ══ -->
+            {% if role == 'admin' or user.is_superuser or user.is_staff %}
+            <div class="nav-label">Administration</div>
+
+            <div class="nav-row">
+              <a href="{% url 'students:student_list' %}" class="nav-link {% if 'students' in request.path %}is-active{% endif %}" data-page="students">
+                <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+                <span>Students</span>
+                <span class="n-badge badge-teal">{{ total_students|default:"0" }}</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'teachers:teacher_list' %}" class="nav-link {% if 'teachers' in request.path %}is-active{% endif %}" data-page="teachers">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-chalkboard-user"></i
+                ></span>
+                <span>Teachers</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'courses:course_list' %}" class="nav-link {% if 'courses' in request.path %}is-active{% endif %}" data-page="courses">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-layer-group"></i
+                ></span>
+                <span>Courses &amp; Depts</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'attendance:attendance_list' %}" class="nav-link {% if 'attendance' in request.path %}is-active{% endif %}" data-page="attendance">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-clipboard-check"></i
+                ></span>
+                <span>Attendance</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'results:exam_list' %}" class="nav-link {% if 'results' in request.path %}is-active{% endif %}" data-page="results">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-square-poll-vertical"></i
+                ></span>
+                <span>Results &amp; Exams</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'fees:invoice_list' %}" class="nav-link {% if 'fees' in request.path %}is-active{% endif %}" data-page="fees">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-money-bill-wave"></i
+                ></span>
+                <span>Fees &amp; Finance</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'timetable:room_list' %}" class="nav-link {% if 'timetable' in request.path %}is-active{% endif %}" data-page="timetable">
+                <span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+                <span>Timetable</span>
+              </a>
+            </div>
+
+            <div class="nav-row">
+              <a href="{% url 'notifications:notification_list' %}" class="nav-link {% if 'notifications' in request.path %}is-active{% endif %}" data-page="notifications">
+                <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+                <span>Notifications</span>
+              </a>
+            </div>
+            {% endif %}
+
+            <!-- ══ FACULTY ══ -->
+            {% if role == 'teacher' %}
+            <div class="nav-divider"></div>
+            <div class="nav-label">Faculty</div>
+
+            <div class="nav-row">
+              <a href="{% url 'courses:course_list' %}" class="nav-link {% if 'courses' in request.path %}is-active{% endif %}">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-book-open"></i
+                ></span>
+                <span>My Courses</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{% url 'attendance:attendance_list' %}" class="nav-link {% if 'attendance' in request.path %}is-active{% endif %}">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-clipboard-check"></i
+                ></span>
+                <span>Mark Attendance</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{% url 'results:exam_list' %}" class="nav-link {% if 'results' in request.path %}is-active{% endif %}">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-pen-to-square"></i
+                ></span>
+                <span>Enter Results</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{% url 'timetable:room_list' %}" class="nav-link {% if 'timetable' in request.path %}is-active{% endif %}">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-calendar-days"></i
+                ></span>
+                <span>My Timetable</span>
+              </a>
+            </div>
+            {% endif %}
+
+            <!-- ══ STUDENT ══ -->
+            {% if role == 'student' %}
+            <div class="nav-divider"></div>
+            <div class="nav-label">Academic</div>
+
+            <div class="nav-row">
+              <a href="{{ my_courses_url|default:'#' }}" class="nav-link">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-book-open"></i
+                ></span>
+                <span>My Courses</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{{ my_attendance_url|default:'#' }}" class="nav-link">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-clipboard-check"></i
+                ></span>
+                <span>My Attendance</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{{ my_results_url|default:'#' }}" class="nav-link">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-square-poll-vertical"></i
+                ></span>
+                <span>My Results</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{{ fee_status_url|default:'#' }}" class="nav-link">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-money-bill-wave"></i
+                ></span>
+                <span>Fee Status</span>
+              </a>
+            </div>
+            <div class="nav-row">
+              <a href="{{ my_timetable_url|default:'#' }}" class="nav-link">
+                <span class="nav-icon"
+                  ><i class="fa-solid fa-calendar-days"></i
+                ></span>
+                <span>My Timetable</span>
+              </a>
+            </div>
+            {% endif %}
+          </nav>
+
+          <!-- FOOTER -->
+          <footer class="s-footer">
+            <div class="help-card">
+              <div class="help-icon"><i class="fa-solid fa-bolt"></i></div>
+              <div class="help-text">
+                <p>Help &amp; Support</p>
+                <span>Docs, shortcuts &amp; tips</span>
+              </div>
+              <i class="fa-solid fa-arrow-up-right help-arrow"></i>
+            </div>
+
+            <div class="user-row">
+              <div class="user-avatar">
+                <i class="fa-solid fa-user-tie"></i>
+              </div>
+              <div class="user-meta">
+                <div class="user-name">
+                  {{ user.get_full_name|default:user.username }}
+                </div>
+                <div class="user-role">
+                  <span class="status-dot"></span>
+                  {% if role == 'admin' or user.is_superuser or user.is_staff %}Administrator
+                  {% elif role == 'teacher' %}Faculty
+                  {% elif role == 'student' %}Student
+                  {% else %}User{% endif %}
+                </div>
+              </div>
+              <i class="fa-solid fa-ellipsis-vertical user-caret"></i>
+            </div>
+          </footer>
+        </aside>
+      </div>
+    </div>
+
+    <script>
+      // ── User dropdown ──
+      const userBtn = document.getElementById("user-btn");
+      const userDropdown = document.getElementById("user-dropdown");
+      const userChevron = document.getElementById("user-chevron");
+
+      if (userBtn && userDropdown) {
+        userBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const open = userDropdown.classList.toggle("open");
+          userBtn.setAttribute("aria-expanded", open);
+          if (userChevron) {
+            userChevron.style.transform = open ? "rotate(180deg)" : "rotate(0)";
+          }
+        });
+
+        document.addEventListener("click", () => {
+          userDropdown.classList.remove("open");
+          userBtn.setAttribute("aria-expanded", "false");
+          if (userChevron) {
+            userChevron.style.transform = "rotate(0)";
+          }
+        });
+      }
+
+      // ── ⌘K search focus ──
+      document.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+          e.preventDefault();
+          document.getElementById("main-search")?.focus();
+        }
+      });
+
+      // ── Active nav link highlighting ──
+      // This ensures the correct sidebar link is highlighted based on current URL
+      document.addEventListener("DOMContentLoaded", () => {
+        const normalize = (path) => {
+          if (!path) return null;
+          try {
+            const pathname = new URL(path, window.location.origin).pathname;
+            return pathname.replace(/\/+$/, "") || "/";
+          } catch (_) {
+            return null;
+          }
+        };
+
+        const currentPath = normalize(window.location.pathname);
+        if (!currentPath) return;
+
+        document.querySelectorAll(".nav-link").forEach((link) => {
+          const href = link.getAttribute("href");
+          const targetPath = normalize(href);
+          if (!targetPath || targetPath === "#") return;
+
+          if (
+            currentPath === targetPath ||
+            (targetPath !== "/" && currentPath.startsWith(targetPath + "/"))
+          ) {
+            link.classList.add("is-active");
+          }
+        });
+      });
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

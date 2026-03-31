@@ -1,0 +1,15 @@
+{
+  "name": "cms",
+  "private": true,
+  "scripts": {
+    "start": "tailwindcss -i ./static_src/src/styles.css -o ./static/css/dist/styles.css --watch",
+    "build": "tailwindcss -i ./static_src/src/styles.css -o ./static/css/dist/styles.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "dependencies": {
+    "daisyui": "^5.5.19"
+  }
+}

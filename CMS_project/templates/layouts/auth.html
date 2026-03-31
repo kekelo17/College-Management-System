@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block body_content %}
+    {% comment %} <div class="min-h-screen flex items-center justify-center px-4 py-10">
+        <div class="w-full max-w-md">
+            <div class="mb-6 text-center">
+                <a href="/" class="inline-flex items-center gap-2 font-black text-2xl">
+                    <span class="text-primary">College</span><span>ERP</span>
+                </a>
+                <p class="mt-2 text-sm text-base-content/70">Sign in to continue</p>
+            </div>
+
+            <div class="card bg-base-100 shadow-xl border border-base-300">
+                <div class="card-body"> {% endcomment %}
+                    {% block content %}{% endblock %}
+                {% comment %} </div>
+            </div>
+
+            <p class="mt-6 text-center text-xs text-base-content/60">
+                Secure access - Role-based permissions - Audit-ready
+            </p>
+        </div>
+    </div> {% endcomment %}
+{% endblock %}
